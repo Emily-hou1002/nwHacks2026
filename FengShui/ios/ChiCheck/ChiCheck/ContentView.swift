@@ -8,33 +8,43 @@
 import SwiftUI
 import RealityKit
 
-struct ContentView : View {
-
+// ContentView.swift (Main Menu)
+struct ContentView: View {
     var body: some View {
-        RealityView { content in
-
-            // Create a cube model
-            let model = Entity()
-            let mesh = MeshResource.generateBox(size: 0.1, cornerRadius: 0.005)
-            let material = SimpleMaterial(color: .gray, roughness: 0.15, isMetallic: true)
-            model.components.set(ModelComponent(mesh: mesh, materials: [material]))
-            model.position = [0, 0.05, 0]
-
-            // Create horizontal plane anchor for the content
-            let anchor = AnchorEntity(.plane(.horizontal, classification: .any, minimumBounds: SIMD2<Float>(0.2, 0.2)))
-            anchor.addChild(model)
-
-            // Add the horizontal plane anchor to the scene
-            content.add(anchor)
-
-            content.camera = .spatialTracking
-
+        NavigationStack {
+            VStack(spacing: 20) {
+                NavigationLink(destination: PageOneView()) {
+                    Text("Go to Page One")
+                        .padding()
+                        .background(Color.blue)
+                        .foregroundColor(.white)
+                        .cornerRadius(10)
+                }
+                NavigationLink(destination: PageTwoView()) {
+                    Text("Go to Page Two")
+                        .padding()
+                        .background(Color.green)
+                        .foregroundColor(.white)
+                        .cornerRadius(10)
+                }
+            }
+            .navigationTitle("Main Menu")
         }
-        .edgesIgnoringSafeArea(.all)
     }
-
 }
 
-#Preview {
-    ContentView()
+// PageOneView.swift (Separate Page)
+struct PageOneView: View {
+    var body: some View {
+        Text("Welcome to Page One!")
+            .navigationTitle("Page One")
+    }
+}
+
+// PageTwoView.swift (Another Page)
+struct PageTwoView: View {
+    var body: some View {
+        Text("Welcome to Page Two!")
+            .navigationTitle("Page Two")
+    }
 }
