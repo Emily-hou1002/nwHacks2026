@@ -117,7 +117,7 @@ class RoomPlanTranslator {
         switch rawIntention {
         case "love": cleanIntention = "relationships"
         case "balance": cleanIntention = "health"
-        case "wealth", "fame", "health", "creativity", "knowledge", "career", "helpful_people":
+        case "wealth", "fame", "health", "creativity", "knowledge", "career", "helpful people":
             cleanIntention = rawIntention
         default:
             cleanIntention = "health"
@@ -261,7 +261,7 @@ class RoomPlanTranslator {
         case .stove: return "stove"
         case .bed: return "bed"
         case .sink: return "sink"
-        case .washerDryer: return "washer_dryer"
+        case .washerDryer: return "washer dryer"
         case .toilet: return "toilet"
         case .bathtub: return "bathtub"
         case .oven: return "oven"
