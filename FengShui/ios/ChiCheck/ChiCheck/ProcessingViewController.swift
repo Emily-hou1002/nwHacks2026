@@ -3,7 +3,6 @@ import QuickLook
 import SceneKit
 
 // MARK: - Opening Model
-
 enum OpeningType {
     case door
     case window
@@ -17,7 +16,6 @@ struct OpeningEmitter {
 }
 
 // MARK: - View Controller
-
 class ProcessingViewController: UIViewController {
     
     // MARK: - Data Variables
@@ -36,7 +34,8 @@ class ProcessingViewController: UIViewController {
     private let baseStatusText = "uploading & analyzing"
     
     // MARK: - Timing Control
-    private let minimumProcessingTime: TimeInterval = 10
+    // CHANGED: Reduced from 10.0 to 2.0 seconds for snappier feel
+    private let minimumProcessingTime: TimeInterval = 2.0
     private var processingStartTime: Date?
     
     // MARK: - Scene State
@@ -47,7 +46,6 @@ class ProcessingViewController: UIViewController {
     private var openingEmitters: [OpeningEmitter] = []
     
     // MARK: - Lifecycle
-    
     override func viewDidLoad() {
         super.viewDidLoad()
         view.backgroundColor = .black
@@ -60,16 +58,195 @@ class ProcessingViewController: UIViewController {
         setupOverlayUI()
         setupDoorSparkles()
         
-        // Start the upload chain
-        uploadUnifiedData()
+        // Start the upload chain in background to prevent UI freeze
+        startUploadProcess()
     }
     
     deinit {
         dotsTimer?.invalidate()
     }
     
-    // MARK: - 3D Setup
+    // MARK: - Networking Wrapper
+    func startUploadProcess() {
+        // Move heavy file reading to background thread
+        DispatchQueue.global(qos: .userInitiated).async { [weak self] in
+            self?.uploadUnifiedData()
+        }
+    }
+
+    // MARK: - Unified Upload (Strict JS Replica)
+    func uploadUnifiedData() {
+        // 1. Validate URLs
+        var targetJSON = jsonURL
+        var targetUSDZ = usdzURL
+        
+        // Simulator Fallbacks (Keep for testing)
+        if targetJSON == nil { targetJSON = Bundle.main.url(forResource: "Room", withExtension: "json") }
+        if targetUSDZ == nil { targetUSDZ = Bundle.main.url(forResource: "Room", withExtension: "usdz") }
+        
+        // NOTE: Use ngrok for real devices, localhost for simulator
+        guard let finalJSON = targetJSON, let finalUSDZ = targetUSDZ,
+              let serverURL = URL(string: "https://runnier-shaniqua-yeasty.ngrok-free.dev/analyze-room-with-model")
+        else {
+            print("❌ Setup Error: Missing Files or Invalid URL")
+            return
+        }
+        
+        DispatchQueue.main.async { self.statusLabel.text = "Uploading scan data..." }
+
+        // 2. Load Data & Decode
+        guard let jsonData = try? Data(contentsOf: finalJSON),
+              let requestObj = try? JSONDecoder().decode(FSRequest.self, from: jsonData) else {
+            print("❌ Data Error: Failed to decode JSON file")
+            return
+        }
+        
+        // Save local debug copy
+        saveDebugJSON(request: requestObj)
+        
+        guard let fileData = try? Data(contentsOf: finalUSDZ) else {
+            print("❌ Data Error: Could not read USDZ file")
+            return
+        }
+        
+        if fileData.isEmpty {
+            print("⛔️ STOPPING: USDZ file is 0 bytes.")
+            return
+        }
+        
+        print("📦 USDZ File Size: \(fileData.count) bytes")
+        
+        // 3. Prepare Request
+        var request = URLRequest(url: serverURL)
+        request.httpMethod = "POST"
+        
+        // Create a unique boundary string
+        let boundary = "Boundary-\(UUID().uuidString)"
+        request.setValue("multipart/form-data; boundary=\(boundary)", forHTTPHeaderField: "Content-Type")
+        
+        // 4. Build Body (Matching JS Order: File First)
+        let httpBody = NSMutableData()
+        let encoder = JSONEncoder()
+        let lineBreak = "\r\n"
+        
+        // --- STEP A: Append File (model_file) ---
+        // JS: formData.append('model_file', usdzFile);
+        httpBody.append("--\(boundary)\(lineBreak)".data(using: .utf8)!)
+        httpBody.append("Content-Disposition: form-data; name=\"model_file\"; filename=\"Room.usdz\"\(lineBreak)".data(using: .utf8)!)
+        httpBody.append("Content-Type: model/vnd.usdz+zip\(lineBreak + lineBreak)".data(using: .utf8)!)
+        httpBody.append(fileData)
+        httpBody.append(lineBreak.data(using: .utf8)!)
+        
+        // --- STEP B: Append JSON Fields ---
+        // Helper to "stringify" JSON and append as form field
+        func appendJSONField(name: String, data: Codable) {
+            // 1. Encode struct to Data
+            // 2. Convert Data to String (JSON.stringify)
+            guard let jsonBytes = try? encoder.encode(data),
+                  let jsonString = String(data: jsonBytes, encoding: .utf8) else { return }
+            
+            // 3. Append to Body
+            httpBody.append("--\(boundary)\(lineBreak)".data(using: .utf8)!)
+            httpBody.append("Content-Disposition: form-data; name=\"\(name)\"\(lineBreak + lineBreak)".data(using: .utf8)!)
+            httpBody.append("\(jsonString)\(lineBreak)".data(using: .utf8)!)
+        }
+        
+        // JS: formData.append('room_metadata', JSON.stringify(...));
+        appendJSONField(name: "room_metadata", data: requestObj.room_metadata)
+        appendJSONField(name: "room_dimensions", data: requestObj.room_dimensions)
+        appendJSONField(name: "objects", data: requestObj.objects)
+        
+        // --- STEP C: Close Boundary ---
+        httpBody.append("--\(boundary)--\(lineBreak)".data(using: .utf8)!)
+        
+        request.httpBody = httpBody as Data
+        
+        // 5. Send
+        print("🚀 Sending Request (\(httpBody.length) bytes)...")
+        
+        URLSession.shared.dataTask(with: request) { [weak self] data, response, error in
+            guard let self = self else { return }
+            
+            if let error = error { print("❌ Network Error: \(error)"); return }
+            
+            guard let httpResponse = response as? HTTPURLResponse, let data = data else { return }
+            print("📡 Status Code: \(httpResponse.statusCode)")
+            
+            if httpResponse.statusCode == 200 {
+                            // SUCCESS
+                            do {
+                                let result = try JSONDecoder().decode(ScanResult.self, from: data)
+                                
+                                // 1. Retrieve X-File-Id header
+                                let fileId = httpResponse.value(forHTTPHeaderField: "X-File-Id")
+                                if let id = fileId {
+                                    print("✅ File ID: \(id)")
+                                }
+                                
+                                // 2. Pass fileId to the handler
+                                DispatchQueue.main.async {
+                                    self.handleResultWithMinimumDelay(result, fileId: fileId)
+                                }
+                            } catch {
+                                print("❌ Decode Error: \(error)")
+                            }
+                        } else {
+                            // ... failure handling ...
+                            let errorMsg = String(data: data, encoding: .utf8) ?? "Unknown Error"
+                            print("❌ Server Error: \(errorMsg)")
+                            DispatchQueue.main.async { self.statusLabel.text = "Error: \(httpResponse.statusCode)" }
+                        }
+                    }.resume()
+                }
+                
+                // MARK: - Result Handler (Reduced Delay)
+                // 3. Update definition to accept fileId
+                private func handleResultWithMinimumDelay(_ result: ScanResult, fileId: String? = nil) {
+                    let elapsed = Date().timeIntervalSince(processingStartTime ?? Date())
+                    let remaining = max(0, minimumProcessingTime - elapsed)
+                    
+                    // Update UI
+                    statusLabel.text = "Analysis complete!"
+                    
+                    DispatchQueue.main.asyncAfter(deadline: .now() + remaining) {
+                        let vc = ResultsViewController()
+                        vc.scanResult = result
+                        vc.usdzURL = self.usdzURL
+                        
+                        // 4. Pass it to the next controller
+                        vc.fileId = fileId
+                        
+                        self.navigationController?.pushViewController(vc, animated: true)
+                    }
+                }
     
+    // MARK: - Result Handler (Reduced Delay)
+    private func handleResultWithMinimumDelay(_ result: ScanResult) {
+        let elapsed = Date().timeIntervalSince(processingStartTime ?? Date())
+        let remaining = max(0, minimumProcessingTime - elapsed)
+        
+        // Update UI
+        statusLabel.text = "Analysis complete!"
+        
+        DispatchQueue.main.asyncAfter(deadline: .now() + remaining) {
+            let vc = ResultsViewController()
+            vc.scanResult = result
+            vc.usdzURL = self.usdzURL
+            self.navigationController?.pushViewController(vc, animated: true)
+        }
+    }
+    
+    // MARK: - Debug Helper
+    func saveDebugJSON(request: FSRequest) {
+        let docDir = FileManager.default.urls(for: .documentDirectory, in: .userDomainMask).first!
+        let filename = "debug_payload.json"
+        let fileURL = docDir.appendingPathComponent(filename)
+        let encoder = JSONEncoder()
+        encoder.outputFormatting = .prettyPrinted
+        try? encoder.encode(request).write(to: fileURL)
+    }
+
+    // MARK: - 3D Setup
     func setup3DBackground() {
         sceneView.translatesAutoresizingMaskIntoConstraints = false
         sceneView.backgroundColor = .black
@@ -120,20 +297,15 @@ class ProcessingViewController: UIViewController {
     }
     
     // MARK: - Camera Animation
-    
     private func animateCameraFlyIn() {
         cameraRig.eulerAngles.y = 0
-        
-        // 1. ZOOM
         let zoomIn = SCNAction.move(to: SCNVector3(0, 12, 12), duration: 4.0)
         zoomIn.timingMode = .easeOut
         cameraNode.runAction(zoomIn)
         
-        // 2. ORBIT + BOOST
         let constantOrbit = SCNAction.repeatForever(
             SCNAction.rotateBy(x: 0, y: .pi * 2, z: 0, duration: 40)
         )
-        
         let entryBoost = SCNAction.rotateBy(x: 0, y: .pi / 2, z: 0, duration: 4.0)
         entryBoost.timingMode = .easeOut
         
@@ -142,17 +314,13 @@ class ProcessingViewController: UIViewController {
     }
     
     // MARK: - Scene Traversal
-    
     private func replaceWithWireframeBoxes(node: SCNNode) {
         for child in node.childNodes {
-            
             if child.name == "WireframeBox" { continue }
-            
             if let name = child.name?.lowercased(), name.contains("floor") {
                 child.isHidden = true
                 continue
             }
-            
             if let geo = child.geometry {
                 let (minVec, maxVec) = child.boundingBox
                 let width = CGFloat(maxVec.x - minVec.x)
@@ -162,36 +330,23 @@ class ProcessingViewController: UIViewController {
                 if let name = child.name?.lowercased() {
                     let isDoor = name.contains("door") || name.contains("opening")
                     let isWindow = name.contains("window")
-                    
                     if isDoor || isWindow {
                         openingEmitters.append(
-                            OpeningEmitter(
-                                node: child,
-                                width: width,
-                                height: height,
-                                type: isDoor ? .door : .window
-                            )
+                            OpeningEmitter(node: child, width: width, height: height, type: isDoor ? .door : .window)
                         )
                     }
                 }
                 
-                let wireframeNode = createThickWireframe(
-                    width: width,
-                    height: height,
-                    length: length,
-                    thickness: 0.008
-                )
+                let wireframeNode = createThickWireframe(width: width, height: height, length: length, thickness: 0.008)
                 wireframeNode.name = "WireframeBox"
                 wireframeNode.position = SCNVector3(
                     (minVec.x + maxVec.x) / 2,
                     (minVec.y + maxVec.y) / 2,
                     (minVec.z + maxVec.z) / 2
                 )
-                
                 child.addChildNode(wireframeNode)
                 child.geometry = nil
             }
-            
             replaceWithWireframeBoxes(node: child)
         }
     }
@@ -201,7 +356,6 @@ class ProcessingViewController: UIViewController {
         let halfW = width / 2
         let halfH = height / 2
         let halfL = length / 2
-        
         let mat = SCNMaterial()
         mat.lightingModel = .constant
         mat.diffuse.contents = UIColor.white
@@ -216,96 +370,59 @@ class ProcessingViewController: UIViewController {
             container.addChildNode(n)
         }
         
-        edge(height, axis: 0, -halfW, 0, -halfL)
-        edge(height, axis: 0,  halfW, 0, -halfL)
-        edge(height, axis: 0, -halfW, 0,  halfL)
-        edge(height, axis: 0,  halfW, 0,  halfL)
-        
-        edge(width, axis: 1, 0,  halfH, -halfL)
-        edge(width, axis: 1, 0, -halfH, -halfL)
-        edge(width, axis: 1, 0,  halfH,  halfL)
-        edge(width, axis: 1, 0, -halfH,  halfL)
-        
-        edge(length, axis: 2, -halfW,  halfH, 0)
-        edge(length, axis: 2,  halfW,  halfH, 0)
-        edge(length, axis: 2, -halfW, -halfH, 0)
-        edge(length, axis: 2,  halfW, -halfH, 0)
+        edge(height, axis: 0, -halfW, 0, -halfL); edge(height, axis: 0,  halfW, 0, -halfL)
+        edge(height, axis: 0, -halfW, 0,  halfL); edge(height, axis: 0,  halfW, 0,  halfL)
+        edge(width, axis: 1, 0,  halfH, -halfL); edge(width, axis: 1, 0, -halfH, -halfL)
+        edge(width, axis: 1, 0,  halfH,  halfL); edge(width, axis: 1, 0, -halfH,  halfL)
+        edge(length, axis: 2, -halfW,  halfH, 0); edge(length, axis: 2,  halfW,  halfH, 0)
+        edge(length, axis: 2, -halfW, -halfH, 0); edge(length, axis: 2,  halfW, -halfH, 0)
         
         return container
     }
     
     // MARK: - Emitters
-    
     func setupDoorSparkles() {
-        DispatchQueue.main.asyncAfter(deadline: .now() + 0.5) {
-            self.setupVisualEmitters()
-        }
+        DispatchQueue.main.asyncAfter(deadline: .now() + 0.5) { self.setupVisualEmitters() }
     }
     
     func setupVisualEmitters() {
         guard !openingEmitters.isEmpty else { return }
-        for opening in openingEmitters {
-            createEmitter(for: opening)
-        }
+        for opening in openingEmitters { createEmitter(for: opening) }
     }
     
     func createEmitter(for opening: OpeningEmitter) {
         guard let root = sceneView.scene?.rootNode else { return }
-        
         let crossImage = createCrossImage()
         let slices = opening.type == .window ? 5 : 6
-        
         let widthPerSlice = opening.width / CGFloat(slices)
         let startX = -(opening.width / 2) + (widthPerSlice / 2)
-        
         let (minVec, maxVec) = opening.node.boundingBox
         let centerY = (minVec.y + maxVec.y) / 2
-        
         let emitterNode = SCNNode()
         emitterNode.position = opening.node.worldPosition
         emitterNode.position.y += Float(centerY)
-        
-        let aimTarget = SCNVector3(0, emitterNode.position.y, 0)
-        
-        emitterNode.look(at: aimTarget,
-                         up: root.worldUp,
-                         localFront: SCNVector3(0, 0, 1))
-        
+        emitterNode.look(at: SCNVector3(0, emitterNode.position.y, 0), up: root.worldUp, localFront: SCNVector3(0, 0, 1))
         root.addChildNode(emitterNode)
         
         let goldColor = UIColor(red: 1.0, green: 0.85, blue: 0.3, alpha: 1.0)
-        
         for i in 0..<slices {
             let sliceNode = SCNNode()
             sliceNode.position = SCNVector3(startX + CGFloat(i) * widthPerSlice, 0, 0)
-            
             let ps = SCNParticleSystem()
             ps.particleImage = crossImage
             ps.particleColor = goldColor
             ps.blendMode = .additive
-            
             ps.particleColorVariation = SCNVector4(0.1, 0.05, 0.05, 0.0)
-            
             ps.particleSize = opening.type == .window ? 0.04 : 0.06
             ps.birthRate = opening.type == .window ? 18 : 20
-            
             ps.particleLifeSpan = 2.5
             ps.particleLifeSpanVariation = 1.0
-            
             ps.particleVelocity = 1.0
             ps.particleVelocityVariation = 0.5
             ps.spreadingAngle = 8
-            
-            ps.emitterShape = SCNBox(
-                width: widthPerSlice,
-                height: opening.height,
-                length: 0,
-                chamferRadius: 0
-            )
-            
+            ps.emitterShape = SCNBox(width: widthPerSlice, height: opening.height, length: 0, chamferRadius: 0)
             ps.emittingDirection = SCNVector3(0, 0, 1)
             ps.acceleration = SCNVector3(0, 0, 0.1)
-            
             sliceNode.addParticleSystem(ps)
             emitterNode.addChildNode(sliceNode)
         }
@@ -321,214 +438,7 @@ class ProcessingViewController: UIViewController {
         }
     }
     
-    // MARK: - Networking Chain
-    
-    // MARK: - Debug Helper
-        func exportDebugJSON(data: Data) {
-            let docDir = FileManager.default.urls(for: .documentDirectory, in: .userDomainMask).first!
-            
-            // Create a unique filename with timestamp
-            let dateFormatter = DateFormatter()
-            dateFormatter.dateFormat = "yyyy-MM-dd_HH-mm-ss"
-            let timestamp = dateFormatter.string(from: Date())
-            let filename = "transposed_room_\(timestamp).json"
-            
-            let fileURL = docDir.appendingPathComponent(filename)
-            
-            do {
-                try data.write(to: fileURL)
-                print("💾 [Debug] Saved local JSON copy to: \(fileURL.path)")
-            } catch {
-                print("❌ [Debug] Failed to save local JSON: \(error)")
-            }
-        }
-    
-    
-    // MARK: - Unified Upload (Matches your JS Example)
-    // MARK: - Unified Upload (Matches JS Schema)
-    // MARK: - Unified Upload (Bulletproof)
-    // MARK: - Unified Upload (Strict Fix)
-    // MARK: - Unified Upload (Strict JS Replica)
-        func uploadUnifiedData() {
-            // 1. Validate URLs
-            var targetJSON = jsonURL
-            var targetUSDZ = usdzURL
-            
-            // Simulator Fallbacks (Keep for testing)
-            if targetJSON == nil { targetJSON = Bundle.main.url(forResource: "Room", withExtension: "json") }
-            if targetUSDZ == nil { targetUSDZ = Bundle.main.url(forResource: "Room", withExtension: "usdz") }
-            
-            // NOTE: Use ngrok for real devices, localhost for simulator
-            guard let finalJSON = targetJSON, let finalUSDZ = targetUSDZ,
-                  let serverURL = URL(string: "https://runnier-shaniqua-yeasty.ngrok-free.dev/analyze-room-with-model")
-            else {
-                print("❌ Setup Error: Missing Files or Invalid URL")
-                return
-            }
-            
-            DispatchQueue.main.async { self.statusLabel.text = "Uploading scan data..." }
-
-            // 2. Load Data & Decode
-            guard let jsonData = try? Data(contentsOf: finalJSON),
-                  let requestObj = try? JSONDecoder().decode(FSRequest.self, from: jsonData) else {
-                print("❌ Data Error: Failed to decode JSON file")
-                return
-            }
-            
-            // Save local debug copy
-            saveDebugJSON(request: requestObj)
-            
-            guard let fileData = try? Data(contentsOf: finalUSDZ) else {
-                print("❌ Data Error: Could not read USDZ file")
-                return
-            }
-            
-            if fileData.isEmpty {
-                print("⛔️ STOPPING: USDZ file is 0 bytes.")
-                return
-            }
-            
-            print("📦 USDZ File Size: \(fileData.count) bytes")
-            
-            // 3. Prepare Request
-            var request = URLRequest(url: serverURL)
-            request.httpMethod = "POST"
-            
-            // Create a unique boundary string
-            let boundary = "Boundary-\(UUID().uuidString)"
-            request.setValue("multipart/form-data; boundary=\(boundary)", forHTTPHeaderField: "Content-Type")
-            
-            // 4. Build Body (Matching JS Order: File First)
-            let httpBody = NSMutableData()
-            let encoder = JSONEncoder()
-            let lineBreak = "\r\n"
-            
-            // --- STEP A: Append File (model_file) ---
-            // JS: formData.append('model_file', usdzFile);
-            httpBody.append("--\(boundary)\(lineBreak)".data(using: .utf8)!)
-            httpBody.append("Content-Disposition: form-data; name=\"model_file\"; filename=\"Room.usdz\"\(lineBreak)".data(using: .utf8)!)
-            httpBody.append("Content-Type: model/vnd.usdz+zip\(lineBreak + lineBreak)".data(using: .utf8)!)
-            httpBody.append(fileData)
-            httpBody.append(lineBreak.data(using: .utf8)!)
-            
-            // --- STEP B: Append JSON Fields ---
-            // Helper to "stringify" JSON and append as form field
-            func appendJSONField(name: String, data: Codable) {
-                // 1. Encode struct to Data
-                // 2. Convert Data to String (JSON.stringify)
-                guard let jsonBytes = try? encoder.encode(data),
-                      let jsonString = String(data: jsonBytes, encoding: .utf8) else { return }
-                
-                // 3. Append to Body
-                httpBody.append("--\(boundary)\(lineBreak)".data(using: .utf8)!)
-                httpBody.append("Content-Disposition: form-data; name=\"\(name)\"\(lineBreak + lineBreak)".data(using: .utf8)!)
-                httpBody.append("\(jsonString)\(lineBreak)".data(using: .utf8)!)
-            }
-            
-            // JS: formData.append('room_metadata', JSON.stringify(...));
-            appendJSONField(name: "room_metadata", data: requestObj.room_metadata)
-            appendJSONField(name: "room_dimensions", data: requestObj.room_dimensions)
-            appendJSONField(name: "objects", data: requestObj.objects)
-            
-            // --- STEP C: Close Boundary ---
-            httpBody.append("--\(boundary)--\(lineBreak)".data(using: .utf8)!)
-            
-            request.httpBody = httpBody as Data
-            
-            // 5. Send
-            print("🚀 Sending Request (\(httpBody.length) bytes)...")
-            
-            URLSession.shared.dataTask(with: request) { [weak self] data, response, error in
-                guard let self = self else { return }
-                
-                if let error = error { print("❌ Network Error: \(error)"); return }
-                
-                guard let httpResponse = response as? HTTPURLResponse, let data = data else { return }
-                print("📡 Status Code: \(httpResponse.statusCode)")
-                
-                if httpResponse.statusCode == 200 {
-                    // SUCCESS
-                    do {
-                        let result = try JSONDecoder().decode(ScanResult.self, from: data)
-                        
-                        // Retrieve X-File-Id header (from your JS example)
-                        if let fileId = httpResponse.value(forHTTPHeaderField: "X-File-Id") {
-                            print("✅ File ID: \(fileId)")
-                        }
-                        
-                        DispatchQueue.main.async { self.handleResultWithMinimumDelay(result) }
-                    } catch {
-                        print("❌ Decode Error: \(error)")
-                    }
-                } else {
-                    // FAILURE
-                    let errorMsg = String(data: data, encoding: .utf8) ?? "Unknown Error"
-                    print("❌ Server Error: \(errorMsg)")
-                    DispatchQueue.main.async { self.statusLabel.text = "Error: \(httpResponse.statusCode)" }
-                }
-            }.resume()
-        }
-    
-    func saveDebugJSON(request: FSRequest) {
-            let docDir = FileManager.default.urls(for: .documentDirectory, in: .userDomainMask).first!
-            
-            // Generate filename with timestamp
-            let dateFormatter = DateFormatter()
-            dateFormatter.dateFormat = "yyyy-MM-dd_HH-mm-ss"
-            let timestamp = dateFormatter.string(from: Date())
-            let filename = "debug_payload_\(timestamp).json"
-            let fileURL = docDir.appendingPathComponent(filename)
-            
-            // Encode and Write
-            let encoder = JSONEncoder()
-            encoder.outputFormatting = .prettyPrinted
-            
-            do {
-                let data = try encoder.encode(request)
-                try data.write(to: fileURL)
-                print("💾 [Debug] JSON saved to: \(fileURL.path)")
-            } catch {
-                print("❌ [Debug] Failed to save JSON: \(error)")
-            }
-        }
-        // MARK: - Multipart Helper
-        func createMultipartBody(data: Data, boundary: String, filename: String, mimeType: String) -> Data {
-            let body = NSMutableData()
-            let lineBreak = "\r\n"
-            
-            // 1. Boundary + Content Disposition
-            body.append("--\(boundary)\(lineBreak)".data(using: .utf8)!)
-            body.append("Content-Disposition: form-data; name=\"file\"; filename=\"\(filename)\"\(lineBreak)".data(using: .utf8)!)
-            body.append("Content-Type: \(mimeType)\(lineBreak + lineBreak)".data(using: .utf8)!)
-            
-            // 2. File Data
-            body.append(data)
-            body.append(lineBreak.data(using: .utf8)!)
-            
-            // 3. Close Boundary
-            body.append("--\(boundary)--\(lineBreak)".data(using: .utf8)!)
-            
-            return body as Data
-        }
-    
-    private func handleResultWithMinimumDelay(_ result: ScanResult) {
-        let elapsed = Date().timeIntervalSince(processingStartTime ?? Date())
-        let remaining = max(0, minimumProcessingTime - elapsed)
-        
-        // Update UI to show we are analyzing/finishing
-        statusLabel.text = "Finalizing analysis..."
-        
-        DispatchQueue.main.asyncAfter(deadline: .now() + remaining) {
-            let vc = ResultsViewController()
-            vc.scanResult = result
-            vc.scanData = self.scanData
-            vc.usdzURL = self.usdzURL
-            self.navigationController?.pushViewController(vc, animated: true)
-        }
-    }
-    
     // MARK: - Overlay UI
-    
     func setupOverlayUI() {
         overlayView.backgroundColor = UIColor.black.withAlphaComponent(0.15)
         overlayView.translatesAutoresizingMaskIntoConstraints = false
@@ -582,11 +492,7 @@ class ProcessingViewController: UIViewController {
             let attr = NSMutableAttributedString(string: "...")
             for i in 0..<3 {
                 let alpha: CGFloat = i < count ? 1 : 0
-                attr.addAttribute(
-                    .foregroundColor,
-                    value: UIColor.white.withAlphaComponent(alpha),
-                    range: NSRange(location: i, length: 1)
-                )
+                attr.addAttribute(.foregroundColor, value: UIColor.white.withAlphaComponent(alpha), range: NSRange(location: i, length: 1))
             }
             self.dotsLabel.attributedText = attr
             count = count == 3 ? 1 : count + 1
