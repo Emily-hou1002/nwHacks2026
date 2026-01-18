@@ -67,49 +67,50 @@ class ViewController: UIViewController {
 
     
     func saveAndNavigate(room: CapturedRoom) {
-        if hasFinished { return }
-        hasFinished = true
-        
-        let docDir = FileManager.default.urls(for: .documentDirectory, in: .userDomainMask).first!
-        let usdzURL = docDir.appendingPathComponent("Room.usdz")
-        let jsonURL = docDir.appendingPathComponent("Room.json")
-        
-        do {
-            // 1. Save USDZ (3D Model)
-            try room.export(to: usdzURL)
+            if hasFinished { return }
+            hasFinished = true
             
-            // 2. ADDED: Prepare Data for Translator
-            let calendar = Calendar.current
-            // Default to 1990 if date is missing for some reason
-            let birthYear = calendar.component(.year, from: config?.birthDate ?? Date(timeIntervalSince1970: 631152000))
+            let docDir = FileManager.default.urls(for: .documentDirectory, in: .userDomainMask).first!
+            let usdzURL = docDir.appendingPathComponent("Room.usdz")
+            let jsonURL = docDir.appendingPathComponent("Room.json")
             
-            // 3. ADDED: Generate CUSTOM JSON using your Translator
-            // We use the 'config' passed from the previous screen
-            let jsonData = try RoomPlanTranslator.translate(
-                room: room,
-                roomType: config?.roomType ?? "Office",       // Default fallback
-                style: config?.roomStyle ?? "Modern",         // Default fallback
-                intention: config?.intention ?? "Balance",    // Default fallback
-                birthYear: birthYear
-            )
-            
-            // 4. Write Custom JSON to file
-            try jsonData.write(to: jsonURL)
-            
-            // 5. Navigate
-            DispatchQueue.main.async {
-                let processingVC = ProcessingViewController()
-                processingVC.usdzURL = usdzURL
-                processingVC.jsonURL = jsonURL
-                // Hide back button to prevent returning to scan
-                processingVC.navigationItem.hidesBackButton = true
-                self.navigationController?.pushViewController(processingVC, animated: true)
+            do {
+                // 1. Save USDZ (3D Model)
+                try room.export(to: usdzURL)
+                
+                // 2. Prepare Data for Translator
+                let calendar = Calendar.current
+                // Default to 1990 if date is missing
+                let birthYear = calendar.component(.year, from: config?.birthDate ?? Date(timeIntervalSince1970: 631152000))
+                
+                // 3. Generate CUSTOM JSON using your Translator
+                // Passing 'usdzURL' so the binary/url can be included in the JSON payload
+                let jsonData = try RoomPlanTranslator.translate(
+                    room: room,
+                    roomType: config?.roomType ?? "Office",       // Default fallback
+                    style: config?.roomStyle ?? "Modern",         // Default fallback
+                    intention: config?.intention ?? "Balance",    // Default fallback
+                    birthYear: birthYear,
+                    usdzURL: usdzURL                              // <--- ADDED THIS PARAMETER
+                )
+                
+                // 4. Write Custom JSON to file
+                try jsonData.write(to: jsonURL)
+                
+                // 5. Navigate
+                DispatchQueue.main.async {
+                    let processingVC = ProcessingViewController()
+                    processingVC.usdzURL = usdzURL
+                    processingVC.jsonURL = jsonURL
+                    // Hide back button to prevent returning to scan
+                    processingVC.navigationItem.hidesBackButton = true
+                    self.navigationController?.pushViewController(processingVC, animated: true)
+                }
+                
+            } catch {
+                print("Save error: \(error)")
             }
-            
-        } catch {
-            print("Save error: \(error)")
         }
-    }
     
     // In ViewController.swift
 

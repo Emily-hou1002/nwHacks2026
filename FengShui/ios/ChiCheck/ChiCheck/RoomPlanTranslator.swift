@@ -3,21 +3,23 @@ import RoomPlan
 import simd
 
 // MARK: - 1. Strict API Models
-struct FSRequest: Encodable {
+struct FSRequest: Codable {
     let room_metadata: FSRoomMetadata
     let room_dimensions: FSRoomDimensions
     let objects: [FSRoomObject]
+    let model_file_url: String? // CHANGED: Now stores the URL string
     
     func encode(to encoder: Encoder) throws {
         var container = encoder.container(keyedBy: CodingKeys.self)
         try container.encode(room_metadata, forKey: .room_metadata)
         try container.encode(room_dimensions, forKey: .room_dimensions)
         try container.encode(objects, forKey: .objects)
+        try container.encode(model_file_url, forKey: .model_file_url)
     }
-    enum CodingKeys: String, CodingKey { case room_metadata, room_dimensions, objects }
+    enum CodingKeys: String, CodingKey { case room_metadata, room_dimensions, objects, model_file_url }
 }
 
-struct FSRoomMetadata: Encodable {
+struct FSRoomMetadata: Codable {
     let room_type: String
     let north_direction_deg: Double
     let room_style: String
@@ -35,7 +37,7 @@ struct FSRoomMetadata: Encodable {
     enum CodingKeys: String, CodingKey { case room_type, north_direction_deg, room_style, feng_shui_intention, birth_year }
 }
 
-struct FSRoomDimensions: Encodable {
+struct FSRoomDimensions: Codable {
     let length_m: Double
     let width_m: Double
     let height_m: Double
@@ -49,7 +51,7 @@ struct FSRoomDimensions: Encodable {
     enum CodingKeys: String, CodingKey { case length_m, width_m, height_m }
 }
 
-struct FSRoomObject: Encodable {
+struct FSRoomObject: Codable {
     let id: String
     let type: String
     let position: FSPosition
@@ -67,7 +69,7 @@ struct FSRoomObject: Encodable {
     enum CodingKeys: String, CodingKey { case id, type, position, rotation_deg, dimensions }
 }
 
-struct FSPosition: Encodable {
+struct FSPosition: Codable {
     let x: Double
     let y: Double
     
@@ -79,7 +81,7 @@ struct FSPosition: Encodable {
     enum CodingKeys: String, CodingKey { case x, y }
 }
 
-struct FSObjectDimensions: Encodable {
+struct FSObjectDimensions: Codable {
     let length_m: Double
     let width_m: Double
     let height_m: Double
@@ -102,14 +104,14 @@ class RoomPlanTranslator {
         roomType: String,
         style: String,
         intention: String,
-        birthYear: Int
+        birthYear: Int,
+        usdzURL: URL? // Accepts the URL to include in JSON
     ) throws -> Data {
         
-        // 1. Lowercase and Sanitize Inputs
+        // 1. Inputs
         let cleanType = roomType.lowercased().replacingOccurrences(of: " ", with: "_")
         let cleanStyle = style.lowercased()
         
-        // Map Intention
         let rawIntention = intention.lowercased()
         let cleanIntention: String
         switch rawIntention {
@@ -130,7 +132,7 @@ class RoomPlanTranslator {
             birth_year: birthYear
         )
         
-        // 3. Room Dimensions (Clamped to avoid 0.0 errors)
+        // 3. Dimensions
         let bounds = calculateRoomBounds(room)
         let roomDims = FSRoomDimensions(
             length_m: clamp(bounds.depth),
@@ -144,27 +146,28 @@ class RoomPlanTranslator {
         for object in room.objects {
             apiObjects.append(convert(object: object))
         }
-        
         for door in room.doors {
             apiObjects.append(convert(surface: door, type: "door"))
         }
-        
         for window in room.windows {
             apiObjects.append(convert(surface: window, type: "window"))
         }
         
-        // 5. Payload Construction
+        // 5. URL Handling (Just convert URL to String)
+        let urlString = usdzURL?.absoluteString
+        
+        // 6. Payload
         let requestPayload = FSRequest(
             room_metadata: metadata,
             room_dimensions: roomDims,
-            objects: apiObjects
+            objects: apiObjects,
+            model_file_url: urlString // Pass the string directly
         )
         
-        // 6. Encode
+        // 7. Encode
         let encoder = JSONEncoder()
         encoder.outputFormatting = .prettyPrinted
         
-        // Return standard JSON (one set of curly braces by default)
         return try encoder.encode(requestPayload)
     }
     
@@ -173,7 +176,7 @@ class RoomPlanTranslator {
     private static func convert(object: CapturedRoom.Object) -> FSRoomObject {
         return createObject(
             id: object.identifier.uuidString,
-            type: mapCategory(object.category).lowercased(), // Ensure type is lowercase
+            type: mapCategory(object.category).lowercased(),
             transform: object.transform,
             dims: object.dimensions
         )
@@ -182,7 +185,7 @@ class RoomPlanTranslator {
     private static func convert(surface: CapturedRoom.Surface, type: String) -> FSRoomObject {
         return createObject(
             id: surface.identifier.uuidString,
-            type: type.lowercased(), // Ensure type is lowercase
+            type: type.lowercased(),
             transform: surface.transform,
             dims: surface.dimensions
         )
@@ -194,7 +197,6 @@ class RoomPlanTranslator {
             y: snap(Float(transform.columns.3.z))
         )
         
-        // CLAMP DIMENSIONS HERE: Enforce min 0.1m thickness/width/height
         let objDims = FSObjectDimensions(
             length_m: clamp(Float(dims.z)),
             width_m:  clamp(Float(dims.x)),
@@ -212,14 +214,11 @@ class RoomPlanTranslator {
     
     // MARK: - Math Helpers
     
-    // Rounds to 2 decimal places standard
     private static func snap(_ value: Float) -> Double {
         let rounded = (value * 100).rounded() / 100
         return Double(rounded)
     }
     
-    // Rounds AND enforces minimum value of 0.1
-    // This fixes "infinite thinness" backend errors
     private static func clamp(_ value: Float) -> Double {
         let rounded = (value * 100).rounded() / 100
         return max(Double(rounded), 0.1)

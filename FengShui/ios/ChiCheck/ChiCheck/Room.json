@@ -362,5 +362,6 @@
     "birth_year" : 2019,
     "feng_shui_intention" : "knowledge",
     "north_direction_deg" : 0
-  }
+  },
+  "model_file_url": "http://localhost/Room.usdz"
 }
