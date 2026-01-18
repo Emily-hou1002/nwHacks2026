@@ -312,6 +312,11 @@ IMPORTANT:
         4. Re-zip into new .usdz (no compression, store method)
         """
         transformations = suggestions.get("transformations", [])
+
+        # Hackathon-safe guardrail:
+        # If the scene is mostly/only chairs+desks, Gemini often collapses targets and causes stacking.
+        # Cap how many transforms we apply for these crowded types to keep the output stable.
+        transformations = self._cap_transformations_for_crowded_scenes(transformations, room_request)
         
         if not transformations:
             # No changes, return original file
@@ -815,6 +820,74 @@ IMPORTANT:
             return (min(all_x), max(all_x), min(all_z), max(all_z))
         except Exception:
             return None
+
+    def _cap_transformations_for_crowded_scenes(
+        self,
+        transformations: List[Dict],
+        room_request: Optional[AnalyzeRoomRequest],
+        *,
+        max_desks: int = 1,
+        max_chairs: int = 1,
+    ) -> List[Dict]:
+        """
+        Limit how many desk/chair transforms we apply.
+
+        This is a pragmatic hackathon guardrail: rooms with many chairs/desks frequently
+        get duplicate target positions from the model, which leads to stacking.
+
+        By default we:
+        - apply up to 1 desk transform
+        - apply up to 1 chair transform
+        - apply all non-desk/chair transforms (if present)
+        """
+        if not transformations or not room_request:
+            return transformations
+
+        type_by_id: Dict[str, str] = {}
+        for obj in room_request.objects:
+            try:
+                type_by_id[str(obj.id).lower()] = str(obj.type).lower()
+            except Exception:
+                continue
+
+        def score(t: Dict) -> float:
+            try:
+                return float(t.get("expected_score_improvement", 0) or 0)
+            except Exception:
+                return 0.0
+
+        desks: List[Dict] = []
+        chairs: List[Dict] = []
+        other: List[Dict] = []
+
+        for t in transformations:
+            if not isinstance(t, dict):
+                continue
+            obj_id = str(t.get("object_id", "") or "").strip().lower()
+            if not obj_id:
+                continue
+            typ = type_by_id.get(obj_id, "")
+            if typ == "desk":
+                desks.append(t)
+            elif typ == "chair":
+                chairs.append(t)
+            else:
+                other.append(t)
+
+        # Sort deterministically: best improvement first, then stable by object_id
+        desks = sorted(desks, key=lambda t: (-score(t), str(t.get("object_id", ""))))
+        chairs = sorted(chairs, key=lambda t: (-score(t), str(t.get("object_id", ""))))
+
+        capped = other + desks[: max(0, int(max_desks))] + chairs[: max(0, int(max_chairs))]
+
+        # If literally everything is chairs/desks, this may intentionally return a tiny set (or empty).
+        if len(capped) != len(transformations):
+            logger.info(
+                f"🧰 Capped transformations for crowded scene: {len(transformations)} → {len(capped)} "
+                f"(kept desks={min(len(desks), max_desks)}, chairs={min(len(chairs), max_chairs)}, other={len(other)})"
+            )
+
+        return capped
 
     def _normalize_and_spread_transformations(
         self,
