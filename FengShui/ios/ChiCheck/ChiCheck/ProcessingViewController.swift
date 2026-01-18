@@ -453,7 +453,9 @@ class ProcessingViewController: UIViewController {
         
         statusLabel.text = baseStatusText
         statusLabel.textColor = .white
-        statusLabel.font = .monospacedSystemFont(ofSize: 16, weight: .semibold)
+        statusLabel.font = .systemFont(ofSize: 16, weight: .medium)
+        
+        // Applying the "Default" ChiCheck font (System Rounded Medium)
         statusLabel.translatesAutoresizingMaskIntoConstraints = false
         
         dotsLabel.text = "..."

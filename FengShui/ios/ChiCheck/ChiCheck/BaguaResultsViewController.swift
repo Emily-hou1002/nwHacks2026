@@ -36,8 +36,6 @@ class BaguaResultsViewController: UIViewController {
     
     // MARK: - Color Palette
     private let goldColor = UIColor(red: 0.85, green: 0.65, blue: 0.13, alpha: 1.0)
-    private let darkGray = UIColor(white: 0.15, alpha: 1.0)
-    private let mediumGray = UIColor(white: 0.25, alpha: 1.0)
 
     override func viewDidLoad() {
         super.viewDidLoad()
@@ -139,7 +137,7 @@ class BaguaResultsViewController: UIViewController {
     
     private func setupHeader() {
         headerView.translatesAutoresizingMaskIntoConstraints = false
-        headerView.backgroundColor = darkGray
+        headerView.backgroundColor = .black
         contentView.addSubview(headerView)
         
         logoImageView.translatesAutoresizingMaskIntoConstraints = false
@@ -186,7 +184,7 @@ class BaguaResultsViewController: UIViewController {
     }
     
     private func setupScoreAndFocusCards() {
-        setupCard(scoreCard, backgroundColor: darkGray)
+        setupCard(scoreCard, backgroundColor: .black)
         scoreLabel.text = "overall score"
         scoreLabel.font = .systemFont(ofSize: 14, weight: .regular)
         scoreLabel.textColor = UIColor.white.withAlphaComponent(0.7)
@@ -200,7 +198,7 @@ class BaguaResultsViewController: UIViewController {
         scoreCard.addSubview(scoreLabel)
         scoreCard.addSubview(scoreValueLabel)
         
-        setupCard(focusCard, backgroundColor: darkGray)
+        setupCard(focusCard, backgroundColor: .black)
         focusLabel.text = "needs focus"
         focusLabel.font = .systemFont(ofSize: 14, weight: .regular)
         focusLabel.textColor = UIColor.white.withAlphaComponent(0.7)
@@ -279,15 +277,17 @@ class BaguaResultsViewController: UIViewController {
     private func createZoneCard(name: String, icon: String, progress: Double) -> UIView {
         let card = UIView()
         card.translatesAutoresizingMaskIntoConstraints = false
-        card.backgroundColor = darkGray
+        card.backgroundColor = .black
         card.layer.cornerRadius = 15
         card.layer.borderWidth = 1
         card.layer.borderColor = UIColor.white.withAlphaComponent(0.1).cgColor
         
         let iconContainer = UIView()
         iconContainer.translatesAutoresizingMaskIntoConstraints = false
-        iconContainer.backgroundColor = mediumGray
+        iconContainer.backgroundColor = .black
         iconContainer.layer.cornerRadius = 25
+        iconContainer.layer.borderWidth = 1
+        iconContainer.layer.borderColor = UIColor.white.withAlphaComponent(0.1).cgColor
         
         let iconView = UIImageView()
         iconView.translatesAutoresizingMaskIntoConstraints = false
@@ -304,7 +304,7 @@ class BaguaResultsViewController: UIViewController {
         
         let progressContainer = UIView()
         progressContainer.translatesAutoresizingMaskIntoConstraints = false
-        progressContainer.backgroundColor = mediumGray
+        progressContainer.backgroundColor = UIColor.white.withAlphaComponent(0.1)
         progressContainer.layer.cornerRadius = 10
         
         let progressBar = UIView()

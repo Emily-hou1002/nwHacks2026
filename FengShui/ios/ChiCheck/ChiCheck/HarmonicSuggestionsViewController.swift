@@ -39,8 +39,6 @@ class HarmonicSuggestionsViewController: UIViewController {
     
     // Colors
     private let goldColor = UIColor(red: 0.85, green: 0.65, blue: 0.13, alpha: 1.0)
-    private let darkGray = UIColor(white: 0.15, alpha: 1.0)
-    private let mediumGray = UIColor(white: 0.25, alpha: 1.0)
 
     override func viewDidLoad() {
         super.viewDidLoad()
@@ -156,7 +154,7 @@ class HarmonicSuggestionsViewController: UIViewController {
     
     private func setupSuggestionContent() {
         suggestionContentView.translatesAutoresizingMaskIntoConstraints = false
-        suggestionContentView.backgroundColor = darkGray
+        suggestionContentView.backgroundColor = .black
         suggestionContentView.layer.cornerRadius = 20
         suggestionContentView.layer.borderWidth = 1
         suggestionContentView.layer.borderColor = UIColor.white.withAlphaComponent(0.1).cgColor
@@ -177,8 +175,10 @@ class HarmonicSuggestionsViewController: UIViewController {
         benefitsTextView.translatesAutoresizingMaskIntoConstraints = false
         benefitsTextView.font = .systemFont(ofSize: 15, weight: .regular)
         benefitsTextView.textColor = UIColor.white.withAlphaComponent(0.9)
-        benefitsTextView.backgroundColor = mediumGray
+        benefitsTextView.backgroundColor = .black
         benefitsTextView.layer.cornerRadius = 12
+        benefitsTextView.layer.borderWidth = 1
+        benefitsTextView.layer.borderColor = UIColor.white.withAlphaComponent(0.1).cgColor
         benefitsTextView.isEditable = false
         benefitsTextView.isScrollEnabled = false
         benefitsTextView.textContainerInset = UIEdgeInsets(top: 15, left: 15, bottom: 15, right: 15)
@@ -264,7 +264,7 @@ class HarmonicSuggestionsViewController: UIViewController {
             var config = btn.configuration
             config?.baseForegroundColor = (i == index) ? goldColor : UIColor.white.withAlphaComponent(0.7)
             btn.configuration = config
-            btn.backgroundColor = (i == index) ? mediumGray : .clear
+            btn.backgroundColor = (i == index) ? UIColor.white.withAlphaComponent(0.1) : .clear
         }
         
         if let suggestion = getSuggestion(at: index) {
@@ -296,7 +296,7 @@ class HarmonicSuggestionsViewController: UIViewController {
     
     private func setupHeader() {
         headerView.translatesAutoresizingMaskIntoConstraints = false
-        headerView.backgroundColor = darkGray
+        headerView.backgroundColor = .black
         contentView.addSubview(headerView)
         logoImageView.translatesAutoresizingMaskIntoConstraints = false
         logoImageView.contentMode = .scaleAspectFit
@@ -316,7 +316,7 @@ class HarmonicSuggestionsViewController: UIViewController {
     
     private func setupTabButtons() {
         tabContainer.translatesAutoresizingMaskIntoConstraints = false
-        tabContainer.backgroundColor = darkGray
+        tabContainer.backgroundColor = .black
         tabContainer.layer.cornerRadius = 25
         tabContainer.layer.borderWidth = 1
         tabContainer.layer.borderColor = UIColor.white.withAlphaComponent(0.1).cgColor

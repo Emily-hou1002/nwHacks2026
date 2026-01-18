@@ -4,13 +4,11 @@ class HomeViewController: UIViewController {
 
     // MARK: - UI Elements
 
-    private let gradientLayer = CAGradientLayer()
     private let baguaShapeLayer = CAShapeLayer()
 
-    // 3. The App Title ("ChiCheck")
     private let titleLabel: UILabel = {
         let label = UILabel()
-        label.text = "ChiChek"
+        label.text = "ChiCheck"
         
         let fontSize: CGFloat = 52
         let systemFont = UIFont.systemFont(ofSize: fontSize, weight: .bold)
@@ -25,15 +23,15 @@ class HomeViewController: UIViewController {
         label.alpha = 0
         label.translatesAutoresizingMaskIntoConstraints = false
         
-        label.layer.shadowColor = UIColor(red: 1.0, green: 0.84, blue: 0.0, alpha: 1.0).cgColor // Gold
-                label.layer.shadowOffset = CGSize(width: 0, height: 0)
-                label.layer.shadowOpacity = 0.6 // Starts softer
-                label.layer.shadowRadius = 10   // Starts smaller
-                
-                return label
+        // Golden Glow for Title
+        label.layer.shadowColor = UIColor(red: 1.0, green: 0.84, blue: 0.0, alpha: 1.0).cgColor
+        label.layer.shadowOffset = .zero
+        label.layer.shadowOpacity = 0.6
+        label.layer.shadowRadius = 10
+        
+        return label
     }()
 
-    // 4. The Mission Statement
     private let missionLabel: UILabel = {
         let label = UILabel()
         label.text = "Harmonize your space.\nElevate your energy."
@@ -46,7 +44,7 @@ class HomeViewController: UIViewController {
             label.font = systemFont
         }
         
-        label.textColor = UIColor.white.withAlphaComponent(0.9)
+        label.textColor = UIColor.white.withAlphaComponent(0.7)
         label.textAlignment = .center
         label.numberOfLines = 0
         label.alpha = 0
@@ -55,23 +53,20 @@ class HomeViewController: UIViewController {
         return label
     }()
 
-    // 5. The "Begin Analysis" Button
     private let startButton: UIButton = {
         let button = UIButton(type: .system)
         button.setTitle("Begin Analysis", for: .normal)
         button.titleLabel?.font = UIFont.systemFont(ofSize: 20, weight: .semibold)
         
-        button.backgroundColor = UIColor.white
-        button.setTitleColor(UIColor(red: 0.1, green: 0.3, blue: 0.3, alpha: 1.0), for: .normal)
-        
+        // NEW STYLING: Black background, white text, white border
+        button.backgroundColor = .black
+        button.setTitleColor(.white, for: .normal)
         button.layer.cornerRadius = 25
+        button.layer.borderColor = UIColor.white.cgColor
+        button.layer.borderWidth = 2.0
+        
         button.alpha = 0
         button.transform = CGAffineTransform(scaleX: 0.8, y: 0.8)
-        
-        button.layer.shadowColor = UIColor.white.cgColor
-        button.layer.shadowOffset = .zero
-        button.layer.shadowOpacity = 0.6
-        button.layer.shadowRadius = 15
         
         button.translatesAutoresizingMaskIntoConstraints = false
         return button
@@ -81,7 +76,9 @@ class HomeViewController: UIViewController {
 
     override func viewDidLoad() {
         super.viewDidLoad()
-        setupGradientBackground()
+        // Set background to pure black
+        view.backgroundColor = .black
+        
         setupBaguaShape()
         setupUI()
         
@@ -95,56 +92,19 @@ class HomeViewController: UIViewController {
     
     override func viewDidLayoutSubviews() {
         super.viewDidLayoutSubviews()
-        gradientLayer.frame = view.bounds
         baguaShapeLayer.position = CGPoint(x: view.center.x, y: view.center.y - 33)
     }
 
-    // MARK: - 1. Flowing Sand Background (UPDATED COLORS)
-
-    private func setupGradientBackground() {
-        // Baby Blue
-        let babyBlue = UIColor(red: 137/255, green: 207/255, blue: 240/255, alpha: 1.0).cgColor
-        // Mint Green
-        let mint = UIColor(red: 152/255, green: 255/255, blue: 152/255, alpha: 1.0).cgColor
-        
-        // UPDATED: Soft Sand/Gold (Removed the Purple/Aurora)
-        let softSand = UIColor(red: 240/255, green: 230/255, blue: 140/255, alpha: 1.0).cgColor
-        
-        // Initial State
-        gradientLayer.colors = [babyBlue, mint, softSand]
-        gradientLayer.startPoint = CGPoint(x: 0, y: 0)
-        gradientLayer.endPoint = CGPoint(x: 1, y: 1)
-        gradientLayer.frame = view.bounds
-        
-        view.layer.insertSublayer(gradientLayer, at: 0)
-
-        animateGradientFlow(colors: [babyBlue, mint, softSand])
-    }
-
-    private func animateGradientFlow(colors: [CGColor]) {
-        let set1 = [colors[0], colors[1], colors[2]]
-        let set2 = [colors[2], colors[0], colors[1]]
-        let set3 = [colors[1], colors[2], colors[0]]
-
-        let animation = CAKeyframeAnimation(keyPath: "colors")
-        animation.values = [set1, set2, set3, set1]
-        animation.keyTimes = [0, 0.33, 0.66, 1.0]
-        animation.duration = 8.0
-        animation.repeatCount = .infinity
-        animation.isRemovedOnCompletion = false
-        
-        gradientLayer.add(animation, forKey: "colorFlow")
-    }
-
-    // MARK: - 2. Bagua Shape (UPDATED VISIBILITY)
+    // MARK: - Bagua Shape (UPDATED TO GOLD)
 
     private func setupBaguaShape() {
         let width: CGFloat = 300
         let height: CGFloat = 300
+        let goldColor = UIColor(red: 212/255, green: 175/255, blue: 55/255, alpha: 1.0)
         
         let path = UIBezierPath()
         let points = [
-            CGPoint(x: width * 0.29, y: 0),     CGPoint(x: width * 0.71, y: 0),
+            CGPoint(x: width * 0.29, y: 0),      CGPoint(x: width * 0.71, y: 0),
             CGPoint(x: width, y: height * 0.29), CGPoint(x: width, y: height * 0.71),
             CGPoint(x: width * 0.71, y: height), CGPoint(x: width * 0.29, y: height),
             CGPoint(x: 0, y: height * 0.71),     CGPoint(x: 0, y: height * 0.29)
@@ -157,14 +117,14 @@ class HomeViewController: UIViewController {
         baguaShapeLayer.path = path.cgPath
         baguaShapeLayer.fillColor = UIColor.clear.cgColor
         
-        // UPDATED: Make it much more obvious
-        baguaShapeLayer.strokeColor = UIColor.white.withAlphaComponent(0.8).cgColor // High Opacity
-        baguaShapeLayer.lineWidth = 6 // Thicker line
+        // UPDATED: Gold Stroke
+        baguaShapeLayer.strokeColor = goldColor.cgColor
+        baguaShapeLayer.lineWidth = 5
         
-        // Added Glow Effect to Bagua
-        baguaShapeLayer.shadowColor = UIColor.white.cgColor
-        baguaShapeLayer.shadowOpacity = 0.8
-        baguaShapeLayer.shadowRadius = 10
+        // Gold Glow Effect
+        baguaShapeLayer.shadowColor = goldColor.cgColor
+        baguaShapeLayer.shadowOpacity = 0.5
+        baguaShapeLayer.shadowRadius = 15
         baguaShapeLayer.shadowOffset = .zero
         
         baguaShapeLayer.bounds = CGRect(x: 0, y: 0, width: width, height: height)
@@ -173,15 +133,14 @@ class HomeViewController: UIViewController {
         let rotation = CABasicAnimation(keyPath: "transform.rotation")
         rotation.fromValue = 0
         rotation.toValue = Double.pi * 2
-        rotation.duration = 60
+        rotation.duration = 40 // Slightly faster spin for energy
         rotation.repeatCount = .infinity
         
         baguaShapeLayer.add(rotation, forKey: "slowSpin")
-        
-        view.layer.insertSublayer(baguaShapeLayer, above: gradientLayer)
+        view.layer.addSublayer(baguaShapeLayer)
     }
 
-    // MARK: - 3. UI Setup
+    // MARK: - UI Layout & Animations
 
     private func setupUI() {
         view.addSubview(titleLabel)
@@ -198,60 +157,55 @@ class HomeViewController: UIViewController {
 
             startButton.bottomAnchor.constraint(equalTo: view.safeAreaLayoutGuide.bottomAnchor, constant: -80),
             startButton.centerXAnchor.constraint(equalTo: view.centerXAnchor),
-            startButton.widthAnchor.constraint(equalToConstant: 220),
+            startButton.widthAnchor.constraint(equalToConstant: 240),
             startButton.heightAnchor.constraint(equalToConstant: 55)
         ])
     }
 
-    // MARK: - Animation Sequence
-
     private func animateSequence() {
-        UIView.animate(withDuration: 1.2, delay: 0.0, options: .curveEaseOut) {
-                    self.titleLabel.alpha = 1.0
-                } completion: { _ in
-                    self.animateTitleGlow()
-                }
+        UIView.animate(withDuration: 1.2) {
+            self.titleLabel.alpha = 1.0
+        } completion: { _ in
+            self.animateTitleGlow()
+        }
 
-        UIView.animate(withDuration: 1.0, delay: 0.8, options: .curveEaseOut) {
+        UIView.animate(withDuration: 1.0, delay: 0.5) {
             self.missionLabel.alpha = 1.0
             self.missionLabel.transform = .identity
         }
 
-        UIView.animate(withDuration: 0.8, delay: 2.0, usingSpringWithDamping: 0.6, initialSpringVelocity: 0.5, options: .curveEaseOut) {
+        UIView.animate(withDuration: 0.8, delay: 1.2, usingSpringWithDamping: 0.7, initialSpringVelocity: 0.5) {
             self.startButton.alpha = 1.0
             self.startButton.transform = .identity
         }
     }
     
-    // NEW FUNCTION: Makes the Golden Shadow Breathe/Gloom
-        private func animateTitleGlow() {
-            // Animate Radius (Expansion)
-            let radiusAnimation = CABasicAnimation(keyPath: "shadowRadius")
-            radiusAnimation.fromValue = 10
-            radiusAnimation.toValue = 30 // Glows outwards
-            radiusAnimation.duration = 2.5
-            radiusAnimation.autoreverses = true
-            radiusAnimation.repeatCount = .infinity
-            
-            // Animate Opacity (Intensity)
-            let opacityAnimation = CABasicAnimation(keyPath: "shadowOpacity")
-            opacityAnimation.fromValue = 0.6
-            opacityAnimation.toValue = 1.0 // Becomes intense gold
-            opacityAnimation.duration = 2.5
-            opacityAnimation.autoreverses = true
-            opacityAnimation.repeatCount = .infinity
-            
-            titleLabel.layer.add(radiusAnimation, forKey: "glowingShadow")
-            titleLabel.layer.add(opacityAnimation, forKey: "pulsingShadow")
-        }
-    
-    // MARK: - Actions
+    private func animateTitleGlow() {
+        let radiusAnimation = CABasicAnimation(keyPath: "shadowRadius")
+        radiusAnimation.fromValue = 8
+        radiusAnimation.toValue = 25
+        radiusAnimation.duration = 2.0
+        radiusAnimation.autoreverses = true
+        radiusAnimation.repeatCount = .infinity
+        
+        titleLabel.layer.add(radiusAnimation, forKey: "glowingShadow")
+    }
 
     @objc func didTapStart() {
+        // 1. Haptic feedback
         let generator = UIImpactFeedbackGenerator(style: .medium)
         generator.impactOccurred()
 
+        // 2. Navigation
+        // Replace 'ScanSetupViewController' with the actual name of your next screen
         let setupVC = ScanSetupViewController()
-        navigationController?.pushViewController(setupVC, animated: true)
+        
+        if let nav = self.navigationController {
+            nav.pushViewController(setupVC, animated: true)
+        } else {
+            // FALLBACK: If there is no navigation controller, present it modally
+            setupVC.modalPresentationStyle = .fullScreen
+            self.present(setupVC, animated: true, completion: nil)
+        }
     }
 }
