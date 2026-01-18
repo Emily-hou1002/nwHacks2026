@@ -31,17 +31,15 @@ class BaguaResultsViewController: UIViewController {
     // Continue Button
     private let continueButton = UIButton(type: .system)
     
-    // MARK: - Color Palette
-    private let babyBlue = UIColor(hex: "8FFBFF") ?? UIColor.systemBlue
-    private let babyYellow = UIColor(hex: "FFEA8F") ?? UIColor.systemYellow
-    private let mint = UIColor(hex: "8FFF9A") ?? UIColor.systemGreen
-    private let gradientStartColor = UIColor(hex: "0066FF") ?? UIColor.systemBlue
-    private let gradientEndColor = UIColor(hex: "00CC99") ?? UIColor.systemTeal
+    // MARK: - Color Palette (Black & Gold Zen)
+    private let goldColor = UIColor(red: 0.85, green: 0.65, blue: 0.13, alpha: 1.0) // Metallic gold
+    private let darkGray = UIColor(white: 0.15, alpha: 1.0)
+    private let mediumGray = UIColor(white: 0.25, alpha: 1.0)
 
     override func viewDidLoad() {
         super.viewDidLoad()
-        view.backgroundColor = UIColor(white: 0.97, alpha: 1)
-        title = "Your Energy Map"
+        view.backgroundColor = .black
+        title = "your energy map"
         navigationItem.hidesBackButton = true
         
         setupUI()
@@ -80,29 +78,20 @@ class BaguaResultsViewController: UIViewController {
     
     private func setupHeader() {
         headerView.translatesAutoresizingMaskIntoConstraints = false
+        headerView.backgroundColor = darkGray
         contentView.addSubview(headerView)
-        
-        // Add gradient background
-        let gradientLayer = CAGradientLayer()
-        gradientLayer.colors = [gradientStartColor.cgColor, gradientEndColor.cgColor]
-        gradientLayer.startPoint = CGPoint(x: 0, y: 0)
-        gradientLayer.endPoint = CGPoint(x: 1, y: 1)
-        gradientLayer.frame = CGRect(x: 0, y: 0, width: UIScreen.main.bounds.width, height: 200)
-        headerView.layer.insertSublayer(gradientLayer, at: 0)
-        headerView.layer.cornerRadius = 20
-        headerView.layer.maskedCorners = [.layerMinXMaxYCorner, .layerMaxXMaxYCorner]
         
         // Logo
         logoImageView.translatesAutoresizingMaskIntoConstraints = false
         logoImageView.contentMode = .scaleAspectFit
         logoImageView.image = UIImage(systemName: "leaf.circle.fill")
-        logoImageView.tintColor = .white
+        logoImageView.tintColor = goldColor
         headerView.addSubview(logoImageView)
         
         // Title
         titleLabel.translatesAutoresizingMaskIntoConstraints = false
-        titleLabel.text = "Your Feng Shui Score"
-        titleLabel.font = .systemFont(ofSize: 32, weight: .bold)
+        titleLabel.text = "your feng shui score"
+        titleLabel.font = .systemFont(ofSize: 28, weight: .light)
         titleLabel.textColor = .white
         titleLabel.textAlignment = .center
         titleLabel.numberOfLines = 0
@@ -112,12 +101,12 @@ class BaguaResultsViewController: UIViewController {
             headerView.topAnchor.constraint(equalTo: contentView.topAnchor),
             headerView.leadingAnchor.constraint(equalTo: contentView.leadingAnchor),
             headerView.trailingAnchor.constraint(equalTo: contentView.trailingAnchor),
-            headerView.heightAnchor.constraint(equalToConstant: 200),
+            headerView.heightAnchor.constraint(equalToConstant: 180),
             
             logoImageView.topAnchor.constraint(equalTo: headerView.topAnchor, constant: 40),
             logoImageView.centerXAnchor.constraint(equalTo: headerView.centerXAnchor),
-            logoImageView.widthAnchor.constraint(equalToConstant: 50),
-            logoImageView.heightAnchor.constraint(equalToConstant: 50),
+            logoImageView.widthAnchor.constraint(equalToConstant: 40),
+            logoImageView.heightAnchor.constraint(equalToConstant: 40),
             
             titleLabel.topAnchor.constraint(equalTo: logoImageView.bottomAnchor, constant: 15),
             titleLabel.leadingAnchor.constraint(equalTo: headerView.leadingAnchor, constant: 20),
@@ -127,30 +116,30 @@ class BaguaResultsViewController: UIViewController {
     
     private func setupScoreAndFocusCards() {
         // Score Card
-        setupCard(scoreCard, backgroundColor: babyBlue.withAlphaComponent(0.3))
-        scoreLabel.text = "Overall Score"
-        scoreLabel.font = .systemFont(ofSize: 16, weight: .regular)
-        scoreLabel.textColor = .darkGray
+        setupCard(scoreCard, backgroundColor: darkGray)
+        scoreLabel.text = "overall score"
+        scoreLabel.font = .systemFont(ofSize: 14, weight: .regular)
+        scoreLabel.textColor = UIColor.white.withAlphaComponent(0.7)
         scoreLabel.textAlignment = .center
         
         scoreValueLabel.text = "85"
-        scoreValueLabel.font = .systemFont(ofSize: 48, weight: .bold)
-        scoreValueLabel.textColor = gradientStartColor
+        scoreValueLabel.font = .systemFont(ofSize: 48, weight: .light)
+        scoreValueLabel.textColor = .white  // Changed from gold to white
         scoreValueLabel.textAlignment = .center
         
         scoreCard.addSubview(scoreLabel)
         scoreCard.addSubview(scoreValueLabel)
         
         // Focus Card
-        setupCard(focusCard, backgroundColor: mint.withAlphaComponent(0.3))
-        focusLabel.text = "Your Focus"
-        focusLabel.font = .systemFont(ofSize: 16, weight: .regular)
-        focusLabel.textColor = .darkGray
+        setupCard(focusCard, backgroundColor: darkGray)
+        focusLabel.text = "your focus"
+        focusLabel.font = .systemFont(ofSize: 14, weight: .regular)
+        focusLabel.textColor = UIColor.white.withAlphaComponent(0.7)
         focusLabel.textAlignment = .center
         
-        focusValueLabel.text = "Creativity"
-        focusValueLabel.font = .systemFont(ofSize: 28, weight: .bold)
-        focusValueLabel.textColor = UIColor(hex: "00AA66")
+        focusValueLabel.text = "creativity"
+        focusValueLabel.font = .systemFont(ofSize: 24, weight: .light)
+        focusValueLabel.textColor = .white
         focusValueLabel.textAlignment = .center
         
         focusCard.addSubview(focusLabel)
@@ -198,7 +187,7 @@ class BaguaResultsViewController: UIViewController {
         card.backgroundColor = backgroundColor
         card.layer.cornerRadius = 15
         card.layer.borderWidth = 1
-        card.layer.borderColor = UIColor.systemGray5.cgColor
+        card.layer.borderColor = UIColor.white.withAlphaComponent(0.1).cgColor
     }
     
     private func setupBaguaZones() {
@@ -207,28 +196,28 @@ class BaguaResultsViewController: UIViewController {
         
         // Section Title
         baguaZonesLabel.translatesAutoresizingMaskIntoConstraints = false
-        baguaZonesLabel.text = "Energy Zones"
-        baguaZonesLabel.font = .systemFont(ofSize: 22, weight: .bold)
-        baguaZonesLabel.textColor = .darkGray
+        baguaZonesLabel.text = "energy zones"
+        baguaZonesLabel.font = .systemFont(ofSize: 20, weight: .light)
+        baguaZonesLabel.textColor = .white
         baguaZonesContainer.addSubview(baguaZonesLabel)
         
         // Placeholder bagua zones - will be replaced with backend data
         let zones = [
-            ("Health", "bed.double.fill", 0.85, mint),
-            ("Wealth", "dollarsign.circle.fill", 0.65, babyYellow),
-            ("Love", "heart.fill", 0.75, UIColor.systemPink.withAlphaComponent(0.3)),
-            ("Career", "briefcase.fill", 0.80, babyBlue),
-            ("Family", "house.fill", 0.70, UIColor.systemGreen.withAlphaComponent(0.3)),
-            ("Knowledge", "book.fill", 0.90, UIColor.systemIndigo.withAlphaComponent(0.3)),
-            ("Fame", "flame.fill", 0.60, UIColor.systemRed.withAlphaComponent(0.3)),
-            ("Children", "figure.2.and.child.holdinghands", 0.75, babyYellow),
-            ("Travel", "airplane", 0.70, babyBlue)
+            ("health", "bed.double.fill", 0.85),
+            ("wealth", "dollarsign.circle.fill", 0.65),
+            ("love", "heart.fill", 0.75),
+            ("career", "briefcase.fill", 0.80),
+            ("family", "house.fill", 0.70),
+            ("knowledge", "book.fill", 0.90),
+            ("fame", "flame.fill", 0.60),
+            ("children", "figure.2.and.child.holdinghands", 0.75),
+            ("travel", "airplane", 0.70)
         ]
         
         var previousView: UIView = baguaZonesLabel
         
         for (index, zone) in zones.enumerated() {
-            let zoneCard = createZoneCard(name: zone.0, icon: zone.1, progress: zone.2, color: zone.3)
+            let zoneCard = createZoneCard(name: zone.0, icon: zone.1, progress: zone.2)
             baguaZonesContainer.addSubview(zoneCard)
             
             NSLayoutConstraint.activate([
@@ -251,24 +240,24 @@ class BaguaResultsViewController: UIViewController {
         ])
     }
     
-    private func createZoneCard(name: String, icon: String, progress: Double, color: UIColor) -> UIView {
+    private func createZoneCard(name: String, icon: String, progress: Double) -> UIView {
         let card = UIView()
         card.translatesAutoresizingMaskIntoConstraints = false
-        card.backgroundColor = .white
+        card.backgroundColor = darkGray
         card.layer.cornerRadius = 15
         card.layer.borderWidth = 1
-        card.layer.borderColor = UIColor.systemGray5.cgColor
+        card.layer.borderColor = UIColor.white.withAlphaComponent(0.1).cgColor
         
         // Icon with background circle
         let iconContainer = UIView()
         iconContainer.translatesAutoresizingMaskIntoConstraints = false
-        iconContainer.backgroundColor = color
+        iconContainer.backgroundColor = mediumGray
         iconContainer.layer.cornerRadius = 25
         
         let iconView = UIImageView()
         iconView.translatesAutoresizingMaskIntoConstraints = false
         iconView.image = UIImage(systemName: icon)
-        iconView.tintColor = .darkGray
+        iconView.tintColor = UIColor.white.withAlphaComponent(0.8)  // Changed from gold to white
         iconView.contentMode = .scaleAspectFit
         iconContainer.addSubview(iconView)
         
@@ -276,18 +265,18 @@ class BaguaResultsViewController: UIViewController {
         let nameLabel = UILabel()
         nameLabel.translatesAutoresizingMaskIntoConstraints = false
         nameLabel.text = name
-        nameLabel.font = .systemFont(ofSize: 18, weight: .semibold)
-        nameLabel.textColor = .darkGray
+        nameLabel.font = .systemFont(ofSize: 17, weight: .regular)
+        nameLabel.textColor = .white
         
         // Progress Container
         let progressContainer = UIView()
         progressContainer.translatesAutoresizingMaskIntoConstraints = false
-        progressContainer.backgroundColor = UIColor.systemGray6
+        progressContainer.backgroundColor = mediumGray
         progressContainer.layer.cornerRadius = 10
         
         let progressBar = UIView()
         progressBar.translatesAutoresizingMaskIntoConstraints = false
-        progressBar.backgroundColor = color.withAlphaComponent(0.8)
+        progressBar.backgroundColor = .white  // Changed from gold to white
         progressBar.layer.cornerRadius = 10
         progressContainer.addSubview(progressBar)
         
@@ -295,8 +284,8 @@ class BaguaResultsViewController: UIViewController {
         let percentLabel = UILabel()
         percentLabel.translatesAutoresizingMaskIntoConstraints = false
         percentLabel.text = "\(Int(progress * 100))%"
-        percentLabel.font = .systemFont(ofSize: 14, weight: .medium)
-        percentLabel.textColor = .darkGray
+        percentLabel.font = .systemFont(ofSize: 14, weight: .regular)
+        percentLabel.textColor = UIColor.white.withAlphaComponent(0.7)
         
         card.addSubview(iconContainer)
         card.addSubview(nameLabel)
@@ -340,11 +329,11 @@ class BaguaResultsViewController: UIViewController {
     
     private func setupContinueButton() {
         continueButton.translatesAutoresizingMaskIntoConstraints = false
-        continueButton.setTitle("View Harmonic Suggestions", for: .normal)
-        continueButton.backgroundColor = gradientStartColor
-        continueButton.setTitleColor(.white, for: .normal)
-        continueButton.layer.cornerRadius = 25
-        continueButton.titleLabel?.font = .systemFont(ofSize: 18, weight: .bold)
+        continueButton.setTitle("view harmonic suggestions", for: .normal)
+        continueButton.backgroundColor = .white  // White button
+        continueButton.setTitleColor(.black, for: .normal)  // Black text
+        continueButton.layer.cornerRadius = 28
+        continueButton.titleLabel?.font = .systemFont(ofSize: 18, weight: .regular)
         continueButton.addTarget(self, action: #selector(didTapContinue), for: .touchUpInside)
         
         view.addSubview(continueButton)
@@ -353,7 +342,7 @@ class BaguaResultsViewController: UIViewController {
             continueButton.bottomAnchor.constraint(equalTo: view.safeAreaLayoutGuide.bottomAnchor, constant: -20),
             continueButton.leadingAnchor.constraint(equalTo: view.leadingAnchor, constant: 40),
             continueButton.trailingAnchor.constraint(equalTo: view.trailingAnchor, constant: -40),
-            continueButton.heightAnchor.constraint(equalToConstant: 50),
+            continueButton.heightAnchor.constraint(equalToConstant: 56),
             
             contentView.bottomAnchor.constraint(equalTo: baguaZonesContainer.bottomAnchor, constant: 100)
         ])

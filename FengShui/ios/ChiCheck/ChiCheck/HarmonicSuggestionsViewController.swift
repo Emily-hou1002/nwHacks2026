@@ -26,8 +26,6 @@ class HarmonicSuggestionsViewController: UIViewController {
     private let suggestionTitleLabel = UILabel()
     private let benefitsSectionLabel = UILabel()
     private let benefitsTextView = UITextView()
-    private let vibeSectionLabel = UILabel()
-    private let vibeTextView = UITextView()
     
     // Done Button
     private let doneButton = UIButton(type: .system)
@@ -35,36 +33,31 @@ class HarmonicSuggestionsViewController: UIViewController {
     // State
     private var currentSuggestion: Int = 1
     
-    // MARK: - Color Palette
-    private let babyBlue = UIColor(hex: "8FFBFF") ?? UIColor.systemBlue
-    private let babyYellow = UIColor(hex: "FFEA8F") ?? UIColor.systemYellow
-    private let mint = UIColor(hex: "8FFF9A") ?? UIColor.systemGreen
-    private let gradientStartColor = UIColor(hex: "0066FF") ?? UIColor.systemBlue
-    private let gradientEndColor = UIColor(hex: "00CC99") ?? UIColor.systemTeal
+    // MARK: - Color Palette (Black & Gold Zen)
+    private let goldColor = UIColor(red: 0.85, green: 0.65, blue: 0.13, alpha: 1.0) // Metallic gold
+    private let darkGray = UIColor(white: 0.15, alpha: 1.0)
+    private let mediumGray = UIColor(white: 0.25, alpha: 1.0)
     
     // Placeholder suggestions data
     private let suggestions = [
         (
-            title: "Place your bed in the East direction",
-            benefits: "East is your best direction for health and vitality based on your Kua number. Aligning your bed with this direction promotes restful sleep, enhances energy levels, and supports overall wellbeing. The East represents new beginnings and the rising sun, bringing fresh chi energy into your space each morning.",
-            vibe: "This placement creates a harmonious flow that resonates with growth and renewal. You'll notice improved sleep quality and wake feeling more refreshed. The East direction particularly supports health matters and family relationships, creating a nurturing sanctuary in your bedroom."
+            title: "place your bed in the east direction",
+            benefits: "east is your best direction for health and vitality based on your kua number. aligning your bed with this direction promotes restful sleep, enhances energy levels, and supports overall wellbeing. the east represents new beginnings and the rising sun, bringing fresh chi energy into your space each morning. this placement creates a harmonious flow that resonates with growth and renewal, supporting health matters and family relationships while creating a nurturing sanctuary in your bedroom."
         ),
         (
-            title: "Add wooden elements to your space",
-            benefits: "Incorporating plants or wooden furniture enhances the Wood element in your room, which is associated with growth, vitality, and creativity. Wood element brings upward, expansive energy that supports personal development and abundance. Natural materials create a grounding connection to nature, reducing stress and promoting tranquility.",
-            vibe: "The presence of Wood element creates a living, breathing atmosphere that feels fresh and invigorating. It balances the energy in your space, preventing stagnation while maintaining a sense of calm. This is especially beneficial for your focus on creativity, as Wood element nurtures innovative thinking and new ideas."
+            title: "add wooden elements to your space",
+            benefits: "incorporating plants or wooden furniture enhances the wood element in your room, which is associated with growth, vitality, and creativity. wood element brings upward, expansive energy that supports personal development and abundance. natural materials create a grounding connection to nature, reducing stress and promoting tranquility. the presence of wood element creates a living, breathing atmosphere that feels fresh and invigorating, particularly beneficial for your focus on creativity as it nurtures innovative thinking and new ideas."
         ),
         (
-            title: "Use warm, earthy tones in your decor",
-            benefits: "Colors like terracotta, beige, and soft greens harmonize with your space's natural energy flow. These earth tones create psychological comfort and stability while supporting the grounding aspect of feng shui. Warm colors stimulate gentle energy without being overwhelming, perfect for a bedroom retreat.",
-            vibe: "Earthy tones evoke feelings of security, comfort, and connection to nature. They create a cocoon-like atmosphere that helps you unwind and feel protected. These colors work particularly well with your theme and support restful sleep while maintaining enough warmth to prevent the space from feeling cold or unwelcoming."
+            title: "use warm, earthy tones in your decor",
+            benefits: "colors like terracotta, beige, and soft greens harmonize with your space's natural energy flow. these earth tones create psychological comfort and stability while supporting the grounding aspect of feng shui. warm colors stimulate gentle energy without being overwhelming, perfect for a bedroom retreat. earthy tones evoke feelings of security, comfort, and connection to nature, creating a cocoon-like atmosphere that helps you unwind and feel protected while supporting restful sleep."
         )
     ]
 
     override func viewDidLoad() {
         super.viewDidLoad()
-        view.backgroundColor = UIColor(white: 0.97, alpha: 1)
-        title = "Harmonic Suggestions"
+        view.backgroundColor = .black
+        title = "harmonic suggestions"
         navigationItem.hidesBackButton = true
         
         setupUI()
@@ -103,29 +96,20 @@ class HarmonicSuggestionsViewController: UIViewController {
     
     private func setupHeader() {
         headerView.translatesAutoresizingMaskIntoConstraints = false
+        headerView.backgroundColor = darkGray
         contentView.addSubview(headerView)
-        
-        // Add gradient background
-        let gradientLayer = CAGradientLayer()
-        gradientLayer.colors = [gradientStartColor.cgColor, gradientEndColor.cgColor]
-        gradientLayer.startPoint = CGPoint(x: 0, y: 0)
-        gradientLayer.endPoint = CGPoint(x: 1, y: 1)
-        gradientLayer.frame = CGRect(x: 0, y: 0, width: UIScreen.main.bounds.width, height: 240)
-        headerView.layer.insertSublayer(gradientLayer, at: 0)
-        headerView.layer.cornerRadius = 20
-        headerView.layer.maskedCorners = [.layerMinXMaxYCorner, .layerMaxXMaxYCorner]
         
         // Logo
         logoImageView.translatesAutoresizingMaskIntoConstraints = false
         logoImageView.contentMode = .scaleAspectFit
         logoImageView.image = UIImage(systemName: "leaf.circle.fill")
-        logoImageView.tintColor = .white
+        logoImageView.tintColor = goldColor
         headerView.addSubview(logoImageView)
         
         // Title
         titleLabel.translatesAutoresizingMaskIntoConstraints = false
-        titleLabel.text = "Harmonic Suggestions"
-        titleLabel.font = .systemFont(ofSize: 32, weight: .bold)
+        titleLabel.text = "harmonic suggestions"
+        titleLabel.font = .systemFont(ofSize: 28, weight: .light)
         titleLabel.textColor = .white
         titleLabel.textAlignment = .center
         titleLabel.numberOfLines = 0
@@ -133,9 +117,9 @@ class HarmonicSuggestionsViewController: UIViewController {
         
         // Subtitle
         subtitleLabel.translatesAutoresizingMaskIntoConstraints = false
-        subtitleLabel.text = "Enhance your space's energy"
-        subtitleLabel.font = .systemFont(ofSize: 18, weight: .regular)
-        subtitleLabel.textColor = .white
+        subtitleLabel.text = "enhance your space's energy"
+        subtitleLabel.font = .systemFont(ofSize: 16, weight: .regular)
+        subtitleLabel.textColor = UIColor.white.withAlphaComponent(0.7)
         subtitleLabel.textAlignment = .center
         headerView.addSubview(subtitleLabel)
         
@@ -143,12 +127,12 @@ class HarmonicSuggestionsViewController: UIViewController {
             headerView.topAnchor.constraint(equalTo: contentView.topAnchor),
             headerView.leadingAnchor.constraint(equalTo: contentView.leadingAnchor),
             headerView.trailingAnchor.constraint(equalTo: contentView.trailingAnchor),
-            headerView.heightAnchor.constraint(equalToConstant: 240),
+            headerView.heightAnchor.constraint(equalToConstant: 200),
             
             logoImageView.topAnchor.constraint(equalTo: headerView.topAnchor, constant: 40),
             logoImageView.centerXAnchor.constraint(equalTo: headerView.centerXAnchor),
-            logoImageView.widthAnchor.constraint(equalToConstant: 50),
-            logoImageView.heightAnchor.constraint(equalToConstant: 50),
+            logoImageView.widthAnchor.constraint(equalToConstant: 40),
+            logoImageView.heightAnchor.constraint(equalToConstant: 40),
             
             titleLabel.topAnchor.constraint(equalTo: logoImageView.bottomAnchor, constant: 15),
             titleLabel.leadingAnchor.constraint(equalTo: headerView.leadingAnchor, constant: 20),
@@ -162,8 +146,10 @@ class HarmonicSuggestionsViewController: UIViewController {
     
     private func setupTabButtons() {
         tabContainer.translatesAutoresizingMaskIntoConstraints = false
-        tabContainer.backgroundColor = UIColor.systemGray6
+        tabContainer.backgroundColor = darkGray
         tabContainer.layer.cornerRadius = 25
+        tabContainer.layer.borderWidth = 1
+        tabContainer.layer.borderColor = UIColor.white.withAlphaComponent(0.1).cgColor
         contentView.addSubview(tabContainer)
         
         configureTabButton(suggestion1Button, number: "1")
@@ -202,11 +188,11 @@ class HarmonicSuggestionsViewController: UIViewController {
         button.translatesAutoresizingMaskIntoConstraints = false
         
         var config = UIButton.Configuration.plain()
-        config.title = "Tip \(number)"
-        config.baseForegroundColor = .darkGray
+        config.title = "tip \(number)"
+        config.baseForegroundColor = UIColor.white.withAlphaComponent(0.7)
         config.titleTextAttributesTransformer = UIConfigurationTextAttributesTransformer { incoming in
             var outgoing = incoming
-            outgoing.font = .systemFont(ofSize: 15, weight: .medium)
+            outgoing.font = .systemFont(ofSize: 15, weight: .regular)
             return outgoing
         }
         
@@ -217,52 +203,35 @@ class HarmonicSuggestionsViewController: UIViewController {
     
     private func setupSuggestionContent() {
         suggestionContentView.translatesAutoresizingMaskIntoConstraints = false
-        suggestionContentView.backgroundColor = .white
+        suggestionContentView.backgroundColor = darkGray
         suggestionContentView.layer.cornerRadius = 20
         suggestionContentView.layer.borderWidth = 1
-        suggestionContentView.layer.borderColor = UIColor.systemGray5.cgColor
+        suggestionContentView.layer.borderColor = UIColor.white.withAlphaComponent(0.1).cgColor
         contentView.addSubview(suggestionContentView)
         
         // Suggestion Title
         suggestionTitleLabel.translatesAutoresizingMaskIntoConstraints = false
-        suggestionTitleLabel.font = .systemFont(ofSize: 22, weight: .bold)
-        suggestionTitleLabel.textColor = .darkGray
+        suggestionTitleLabel.font = .systemFont(ofSize: 20, weight: .light)
+        suggestionTitleLabel.textColor = .white
         suggestionTitleLabel.numberOfLines = 0
         suggestionContentView.addSubview(suggestionTitleLabel)
         
         // Benefits Section
         benefitsSectionLabel.translatesAutoresizingMaskIntoConstraints = false
-        benefitsSectionLabel.text = "Why This Helps"
-        benefitsSectionLabel.font = .systemFont(ofSize: 18, weight: .semibold)
-        benefitsSectionLabel.textColor = gradientStartColor
+        benefitsSectionLabel.text = "why this helps"
+        benefitsSectionLabel.font = .systemFont(ofSize: 16, weight: .regular)
+        benefitsSectionLabel.textColor = goldColor
         suggestionContentView.addSubview(benefitsSectionLabel)
         
         benefitsTextView.translatesAutoresizingMaskIntoConstraints = false
-        benefitsTextView.font = .systemFont(ofSize: 16, weight: .regular)
-        benefitsTextView.textColor = .darkGray
+        benefitsTextView.font = .systemFont(ofSize: 15, weight: .regular)
+        benefitsTextView.textColor = UIColor.white.withAlphaComponent(0.9)
         benefitsTextView.isEditable = false
         benefitsTextView.isScrollEnabled = false
-        benefitsTextView.backgroundColor = mint.withAlphaComponent(0.1)
+        benefitsTextView.backgroundColor = mediumGray
         benefitsTextView.layer.cornerRadius = 12
         benefitsTextView.textContainerInset = UIEdgeInsets(top: 15, left: 15, bottom: 15, right: 15)
         suggestionContentView.addSubview(benefitsTextView)
-        
-        // Vibe Section
-        vibeSectionLabel.translatesAutoresizingMaskIntoConstraints = false
-        vibeSectionLabel.text = "The Vibe It Creates"
-        vibeSectionLabel.font = .systemFont(ofSize: 18, weight: .semibold)
-        vibeSectionLabel.textColor = gradientStartColor
-        suggestionContentView.addSubview(vibeSectionLabel)
-        
-        vibeTextView.translatesAutoresizingMaskIntoConstraints = false
-        vibeTextView.font = .systemFont(ofSize: 16, weight: .regular)
-        vibeTextView.textColor = .darkGray
-        vibeTextView.isEditable = false
-        vibeTextView.isScrollEnabled = false
-        vibeTextView.backgroundColor = babyBlue.withAlphaComponent(0.1)
-        vibeTextView.layer.cornerRadius = 12
-        vibeTextView.textContainerInset = UIEdgeInsets(top: 15, left: 15, bottom: 15, right: 15)
-        suggestionContentView.addSubview(vibeTextView)
         
         NSLayoutConstraint.activate([
             suggestionContentView.topAnchor.constraint(equalTo: tabContainer.bottomAnchor, constant: 20),
@@ -280,25 +249,17 @@ class HarmonicSuggestionsViewController: UIViewController {
             benefitsTextView.topAnchor.constraint(equalTo: benefitsSectionLabel.bottomAnchor, constant: 12),
             benefitsTextView.leadingAnchor.constraint(equalTo: suggestionContentView.leadingAnchor, constant: 20),
             benefitsTextView.trailingAnchor.constraint(equalTo: suggestionContentView.trailingAnchor, constant: -20),
-            
-            vibeSectionLabel.topAnchor.constraint(equalTo: benefitsTextView.bottomAnchor, constant: 25),
-            vibeSectionLabel.leadingAnchor.constraint(equalTo: suggestionContentView.leadingAnchor, constant: 20),
-            vibeSectionLabel.trailingAnchor.constraint(equalTo: suggestionContentView.trailingAnchor, constant: -20),
-            
-            vibeTextView.topAnchor.constraint(equalTo: vibeSectionLabel.bottomAnchor, constant: 12),
-            vibeTextView.leadingAnchor.constraint(equalTo: suggestionContentView.leadingAnchor, constant: 20),
-            vibeTextView.trailingAnchor.constraint(equalTo: suggestionContentView.trailingAnchor, constant: -20),
-            vibeTextView.bottomAnchor.constraint(equalTo: suggestionContentView.bottomAnchor, constant: -25)
+            benefitsTextView.bottomAnchor.constraint(equalTo: suggestionContentView.bottomAnchor, constant: -25)
         ])
     }
     
     private func setupDoneButton() {
         doneButton.translatesAutoresizingMaskIntoConstraints = false
-        doneButton.setTitle("Done", for: .normal)
-        doneButton.backgroundColor = gradientStartColor
-        doneButton.setTitleColor(.white, for: .normal)
-        doneButton.layer.cornerRadius = 25
-        doneButton.titleLabel?.font = .systemFont(ofSize: 18, weight: .bold)
+        doneButton.setTitle("done", for: .normal)
+        doneButton.backgroundColor = .white  // White button
+        doneButton.setTitleColor(.black, for: .normal)  // Black text
+        doneButton.layer.cornerRadius = 28
+        doneButton.titleLabel?.font = .systemFont(ofSize: 18, weight: .regular)
         doneButton.addTarget(self, action: #selector(didTapDone), for: .touchUpInside)
         
         view.addSubview(doneButton)
@@ -307,7 +268,7 @@ class HarmonicSuggestionsViewController: UIViewController {
             doneButton.bottomAnchor.constraint(equalTo: view.safeAreaLayoutGuide.bottomAnchor, constant: -20),
             doneButton.leadingAnchor.constraint(equalTo: view.leadingAnchor, constant: 40),
             doneButton.trailingAnchor.constraint(equalTo: view.trailingAnchor, constant: -40),
-            doneButton.heightAnchor.constraint(equalToConstant: 50),
+            doneButton.heightAnchor.constraint(equalToConstant: 56),
             
             contentView.bottomAnchor.constraint(equalTo: suggestionContentView.bottomAnchor, constant: 100)
         ])
@@ -332,7 +293,7 @@ class HarmonicSuggestionsViewController: UIViewController {
         // Update button styles
         [suggestion1Button, suggestion2Button, suggestion3Button].forEach { button in
             var config = button.configuration
-            config?.baseForegroundColor = .darkGray
+            config?.baseForegroundColor = UIColor.white.withAlphaComponent(0.7)
             button.configuration = config
             button.backgroundColor = .clear
         }
@@ -351,21 +312,20 @@ class HarmonicSuggestionsViewController: UIViewController {
         }
         
         var selectedConfig = selectedButton.configuration
-        selectedConfig?.baseForegroundColor = gradientStartColor
+        selectedConfig?.baseForegroundColor = goldColor
         selectedButton.configuration = selectedConfig
-        selectedButton.backgroundColor = .white
+        selectedButton.backgroundColor = mediumGray
         
         // Update content
         let suggestion = suggestions[suggestionNumber - 1]
         suggestionTitleLabel.text = suggestion.title
         benefitsTextView.text = suggestion.benefits
-        vibeTextView.text = suggestion.vibe
         
         // Animate content change
-        UIView.animate(withDuration: 0.3) {
+        UIView.animate(withDuration: 0.2) {
             self.suggestionContentView.alpha = 0.0
         } completion: { _ in
-            UIView.animate(withDuration: 0.3) {
+            UIView.animate(withDuration: 0.2) {
                 self.suggestionContentView.alpha = 1.0
             }
         }
