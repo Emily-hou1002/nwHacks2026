@@ -71,7 +71,7 @@ class RoomMetadata(BaseModel):
         None,
         description="Birth year of the user (for personalized Feng Shui calculations)",
         ge=1900,
-        le=2024
+        le=2027
     )
 
 
