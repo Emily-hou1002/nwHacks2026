@@ -16,6 +16,9 @@ class ProcessingViewController: UIViewController {
     private let activityIndicator = UIActivityIndicatorView(style: .large)
     private let exportButton = UIButton(type: .system)
     
+    // State
+    private var energyCursorNode: SCNNode?
+    
     override func viewDidLoad() {
         super.viewDidLoad()
         view.backgroundColor = .black
@@ -25,118 +28,146 @@ class ProcessingViewController: UIViewController {
         setup3DBackground()
         setupOverlayUI()
         
-        // START THE PATH VISUALIZATION
-        generateEnergyPath()
+        // Start the Energy Animation
+        startEnergySequence()
         
         uploadFilesToServer()
     }
     
-    // MARK: - Path Visualization
-    func generateEnergyPath() {
+    // MARK: - Energy Animation Logic
+    func startEnergySequence() {
         guard let url = jsonURL else { return }
         
         DispatchQueue.global(qos: .userInitiated).async {
-            // Assumes you have the updated PathfindingEngine from the previous step
             let engine = PathfindingEngine()
+            // 1. Calculate Path (Center -> Door)
             if let pathPoints = engine.calculatePath(from: url) {
+                // 2. Reverse it (Door -> Center) for the "Entering" effect
+                let enteringPath = Array(pathPoints.reversed())
+                
                 DispatchQueue.main.async {
-                    self.drawCloudPath(points: pathPoints)
+                    self.animateFlow(points: enteringPath)
                 }
             }
         }
     }
     
-    func drawCloudPath(points: [CGPoint]) {
-        guard points.count > 1 else { return }
+    func animateFlow(points: [CGPoint]) {
+        guard let firstPoint = points.first else { return }
         
-        let pathNode = SCNNode()
-        let goldColor = UIColor(red: 1.0, green: 0.8, blue: 0.3, alpha: 1.0)
-        let particleImg = createSoftParticleImage()
+        // --- 1. SETUP CURSOR NODE ---
+        // This node will physically travel along the path
+        let cursor = SCNNode()
+        let startPos = SCNVector3(firstPoint.x, 0.5, firstPoint.y) // Start 0.5m off floor
+        cursor.position = startPos
+        sceneView.scene?.rootNode.addChildNode(cursor)
+        self.energyCursorNode = cursor
         
-        // Slightly higher path (0.5m) to avoid floor clipping
-        let pathHeight: Float = 0.5
+        // --- 2. LIGHT SETUP (Travels with cursor) ---
+        let light = SCNLight()
+        light.type = .omni
+        let goldColor = UIColor(red: 1.0, green: 0.85, blue: 0.4, alpha: 1.0)
+        light.color = goldColor
+        light.intensity = 500 // Start dim
+        light.attenuationEndDistance = 4.0 // Small pool of light initially
+        cursor.light = light
         
-        for i in 0..<(points.count - 1) {
-            let startPoint = points[i]
-            let endPoint = points[i+1]
+        // --- 3. PARTICLE SYSTEM A: "THE STREAM" ---
+        // Trail of energy entering the room
+        let streamParticles = SCNParticleSystem()
+        streamParticles.particleImage = createSoftParticleImage()
+        streamParticles.particleColor = goldColor
+        streamParticles.blendMode = .additive
+        streamParticles.birthRate = 150 // Dense stream
+        streamParticles.particleLifeSpan = 2.5 // Lasts long enough to leave a trail
+        streamParticles.particleSize = 0.15
+        streamParticles.emitterShape = SCNSphere(radius: 0.2)
+        streamParticles.birthLocation = .volume
+        
+        // IMPORTANT: Birth in World Space so particles stay behind as cursor moves
+        streamParticles.isLocal = false
+        
+        // Movement: Slight spread, no velocity (they hang in the air where born)
+        streamParticles.particleVelocity = 0.2
+        streamParticles.spreadingAngle = 180
+        
+        cursor.addParticleSystem(streamParticles)
+        
+        // --- 4. CREATE MOVEMENT ACTIONS ---
+        var actions: [SCNAction] = []
+        
+        // Travel at constant speed (e.g., 2 meters per second)
+        let speed: Double = 2.0
+        
+        for i in 1..<points.count {
+            let pt = points[i]
+            let worldPos = SCNVector3(pt.x, 0.5, pt.y)
+            let dist = distanceBetween(cursor.position, worldPos)
+            let duration = Double(dist) / speed
             
-            let start = SCNVector3(startPoint.x, CGFloat(pathHeight), startPoint.y)
-            let end = SCNVector3(endPoint.x, CGFloat(pathHeight), endPoint.y)
-            let distance = distanceBetween(start, end)
-            
-            // 1. Particle System Setup
-            let particleSystem = SCNParticleSystem()
-            particleSystem.particleImage = particleImg
-            particleSystem.particleColor = goldColor
-            particleSystem.blendMode = .additive
-            
-            // INITIAL CLOUD PROPERTIES (More dispersed)
-            particleSystem.particleSize = 0.15
-            particleSystem.particleIntensity = 1.0
-            // WIDER EMITTER: Radius 0.4m (was 0.15) for a thicker "river"
-            particleSystem.emitterShape = SCNSphere(radius: 0.4)
-            particleSystem.birthLocation = .volume
-            
-            // MOVEMENT
-            let particleSpeed: CGFloat = 1.0
-            particleSystem.emittingDirection = SCNVector3(0, 0, 1) // Local Forward
-            particleSystem.particleVelocity = particleSpeed
-            // Soft Gravity (-0.1) for a gentle settling effect
-            particleSystem.acceleration = SCNVector3(0, -0.1, 0)
-            
-            // SPREAD (Base Value)
-            particleSystem.spreadingAngle = 20 // Base spread is wider now
-            
-            particleSystem.particleLifeSpan = CGFloat(distance) / particleSpeed
-            particleSystem.birthRate = 80 // Dense cloud
-            
-            // --- DYNAMIC LFO ANIMATIONS ---
-            
-            // Animation A: Breathing Spread (Cloud gets wider and narrower)
-            let spreadAnim = CABasicAnimation(keyPath: "spreadingAngle")
-            spreadAnim.fromValue = 10 // Tight beam
-            spreadAnim.toValue = 20   // Wide mist
-            spreadAnim.duration = 4.0 // Slow breath
-            spreadAnim.autoreverses = true
-            spreadAnim.repeatCount = .infinity
-            spreadAnim.timingFunction = CAMediaTimingFunction(name: .easeInEaseOut)
-            particleSystem.addAnimation(spreadAnim, forKey: "spreadBreath")
-            
-            // Animation B: Size Turbulence (Particles get chunky then fine)
-            let sizeAnim = CABasicAnimation(keyPath: "particleSize")
-            sizeAnim.fromValue = 0.15
-            sizeAnim.toValue = 0.2
-            sizeAnim.duration = 2.7 // Slightly out of sync with spread for randomness
-            sizeAnim.autoreverses = true
-            sizeAnim.repeatCount = .infinity
-            sizeAnim.timingFunction = CAMediaTimingFunction(name: .easeInEaseOut)
-            particleSystem.addAnimation(sizeAnim, forKey: "sizeTurbulence")
-            
-            // ------------------------------
-            
-            // 2. Attach System
-            let emitterNode = SCNNode()
-            emitterNode.position = start
-            // Orient node to face the next point
-            emitterNode.look(at: end, up: SCNVector3(0,1,0), localFront: SCNVector3(0,0,1))
-            emitterNode.addParticleSystem(particleSystem)
-            
-            pathNode.addChildNode(emitterNode)
-            
-            // 3. Simple Lighting (One per node)
-            let lightNode = SCNNode()
-            lightNode.position = start
-            let light = SCNLight()
-            light.type = .omni
-            light.color = goldColor
-            light.intensity = 6
-            light.attenuationEndDistance = 10.0
-            lightNode.light = light
-            pathNode.addChildNode(lightNode)
+            let moveAction = SCNAction.move(to: worldPos, duration: duration)
+            moveAction.timingMode = .linear
+            actions.append(moveAction)
         }
         
-        pathNode.renderingOrder = 100
-        sceneView.scene?.rootNode.addChildNode(pathNode)
+        // --- 5. FINAL PHASE: "THE FILL" ---
+        // When cursor reaches center (last point), trigger explosion
+        let fillAction = SCNAction.run { node in
+            // A. Remove the Stream
+            node.removeParticleSystem(streamParticles)
+            
+            // B. Add "Fountain" Particles (Up and Out)
+            let fountain = SCNParticleSystem()
+            fountain.particleImage = self.createSoftParticleImage()
+            fountain.particleColor = goldColor
+            fountain.blendMode = .additive
+            fountain.birthRate = 300 // Explosion!
+            fountain.particleLifeSpan = 4.0
+            fountain.particleSize = 0.2
+            fountain.emitterShape = SCNSphere(radius: 0.5)
+            fountain.birthLocation = .volume
+            fountain.isLocal = true // Move with center if needed
+            
+            // Physics: Float UPWARDS
+            fountain.acceleration = SCNVector3(0, 1.5, 0) // Negative gravity (Up)
+            fountain.particleVelocity = 1.0 // Initial speed outwards
+            fountain.spreadingAngle = 180 // Omnidirectional
+            
+            // Animation: Size Pulse
+            let sizeAnim = CABasicAnimation(keyPath: "particleSize")
+            sizeAnim.fromValue = 0.1
+            sizeAnim.toValue = 0.4
+            sizeAnim.duration = 2.0
+            sizeAnim.autoreverses = true
+            sizeAnim.repeatCount = .infinity
+            fountain.addAnimation(sizeAnim, forKey: "sizePulse")
+            
+            node.addParticleSystem(fountain)
+            
+            // C. Animate Light to Fill Room
+            // Ramp intensity up
+            let intensityAnim = CABasicAnimation(keyPath: "light.intensity")
+            intensityAnim.fromValue = 500
+            intensityAnim.toValue = 2000
+            intensityAnim.duration = 2.0
+            intensityAnim.fillMode = .forwards
+            intensityAnim.isRemovedOnCompletion = false
+            node.addAnimation(intensityAnim, forKey: "lightUp")
+            
+            // Ramp range (attenuation) up to cover walls
+            let rangeAnim = CABasicAnimation(keyPath: "light.attenuationEndDistance")
+            rangeAnim.fromValue = 4.0
+            rangeAnim.toValue = 20.0
+            rangeAnim.duration = 3.0
+            rangeAnim.fillMode = .forwards
+            rangeAnim.isRemovedOnCompletion = false
+            node.addAnimation(rangeAnim, forKey: "rangeUp")
+        }
+        
+        actions.append(fillAction)
+        
+        // Execute Chain
+        cursor.runAction(SCNAction.sequence(actions))
     }
     
     // Helper: Soft Particle Image
@@ -146,6 +177,7 @@ class ProcessingViewController: UIViewController {
             let rect = CGRect(x: 0, y: 0, width: 32, height: 32)
             let path = UIBezierPath(ovalIn: rect)
             context.cgContext.addPath(path.cgPath)
+            // Pure white (colorized by SceneKit)
             context.cgContext.setFillColor(UIColor.white.cgColor)
             context.cgContext.fillPath()
         }
@@ -189,17 +221,13 @@ class ProcessingViewController: UIViewController {
     func setupOrbit(scene: SCNScene) {
         sceneView.scene = scene
         
-        // 1. Create a Container Node for the Camera
         let cameraRig = SCNNode()
         cameraRig.position = SCNVector3(0, 0, 0)
         
-        // 2. Create Camera Node
         let cameraNode = SCNNode()
         cameraNode.camera = SCNCamera()
-        
-        // CHANGED: Zoomed out significantly (7, 7, 7) for a wider view
-        cameraNode.position = SCNVector3(0, 7, 7)
-        // Angled down (-45 deg)
+        // Wide high angle view
+        cameraNode.position = SCNVector3(0, 8, 8)
         cameraNode.eulerAngles = SCNVector3(-Float.pi / 4, 0, 0)
         
         cameraRig.addChildNode(cameraNode)
@@ -207,8 +235,7 @@ class ProcessingViewController: UIViewController {
         
         sceneView.pointOfView = cameraNode
         
-        // 3. Rotate the RIG
-        let rotateAction = SCNAction.rotateBy(x: 0, y: 2 * .pi, z: 0, duration: 25)
+        let rotateAction = SCNAction.rotateBy(x: 0, y: 2 * .pi, z: 0, duration: 30)
         let repeatAction = SCNAction.repeatForever(rotateAction)
         cameraRig.runAction(repeatAction)
     }

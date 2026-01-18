@@ -34,7 +34,6 @@ class PathfindingEngine {
             
             let cx = CGFloat(x); let cz = CGFloat(z)
             let cw = CGFloat(w); let cd = CGFloat(d)
-            // Parse Rotation (Important for the fix!)
             let rotDeg = obj["rotation_deg"] as? Double ?? 0.0
             let rotRad = CGFloat(rotDeg * .pi / 180.0)
             
@@ -48,28 +47,24 @@ class PathfindingEngine {
             }
         }
         
-        // 2. Target Strategy: Approach Vector
+        // 2. Target Strategy
         guard let targetDoor = doors.max(by: { $0.dist < $1.dist }) else { return nil }
         
-        let startWorld = CGPoint(x: 0, y: 0)
+        let centerPoint = CGPoint(x: 0, y: 0)
         let doorCenter = CGPoint(x: targetDoor.x, y: targetDoor.z)
         
-        // Calculate Door Normal Vector (Direction facing out)
-        // Note: SceneKit Y-rotation usually maps 0 to -Z axis, but let's assume standard trig first
+        // Calculate Approach Vector (0.8m inside the room)
         let dx = sin(targetDoor.rot)
         let dz = cos(targetDoor.rot)
-        
-        // We need to know which side of the door is "inside".
-        // Calculate two test points 0.8m away on either side of the door
         let p1 = CGPoint(x: doorCenter.x + (dx * 0.8), y: doorCenter.y + (dz * 0.8))
         let p2 = CGPoint(x: doorCenter.x - (dx * 0.8), y: doorCenter.y - (dz * 0.8))
         
-        // The "Inside" point is the one closer to the room start (0,0)
-        let d1 = hypot(p1.x, p1.y)
-        let d2 = hypot(p2.x, p2.y)
+        // Pick point closer to center (Inside) vs Outside
+        let dist1 = hypot(p1.x, p1.y)
+        let dist2 = hypot(p2.x, p2.y)
         
-        let approachPoint = (d1 < d2) ? p1 : p2
-        let exitPoint     = (d1 < d2) ? p2 : p1 // The point on the OUTSIDE
+        let approachPoint = (dist1 < dist2) ? p1 : p2
+        let exitPoint     = (dist1 < dist2) ? p2 : p1
         
         // 3. Grid Setup
         let gridW = Int(ceil((maxX - minX) / gridSize)) + 10
@@ -102,9 +97,8 @@ class PathfindingEngine {
             }
         }
         
-        // 5. BFS to the APPROACH POINT (Not the door itself)
-        // This ensures we navigate around furniture to get *in front* of the door first
-        let startNode = toGrid(startWorld)
+        // 5. BFS (Center -> Approach)
+        let startNode = toGrid(centerPoint)
         let targetNode = toGrid(approachPoint)
         
         if blocked.contains(startNode) { blocked.remove(startNode) }
@@ -117,10 +111,7 @@ class PathfindingEngine {
         
         while !queue.isEmpty {
             let current = queue.removeFirst()
-            if current == targetNode {
-                found = true
-                break
-            }
+            if current == targetNode { found = true; break }
             
             let neighbors = [Point(x: current.x, y: current.y+1), Point(x: current.x, y: current.y-1),
                              Point(x: current.x-1, y: current.y), Point(x: current.x+1, y: current.y)]
@@ -135,31 +126,27 @@ class PathfindingEngine {
             }
         }
         
-        // 6. Reconstruct Path
+        // 6. Reconstruct Path (Center -> Door)
         var path = [CGPoint]()
         
-        // A. Add the Exit Point (Outside)
-        path.append(exitPoint)
-        
-        // B. Add the Door Center
-        path.append(doorCenter)
-        
-        // C. Add the Approach Point
-        path.append(approachPoint)
-        
-        // D. Add the Pathfinding nodes (Approach -> Start)
         if found {
-            var curr = targetNode // Start tracing back from the Approach Point
+            var curr = targetNode
             while curr != startNode {
-                // Only add grid points if they aren't super close to the approach point (smoothing)
                 path.append(toWorld(curr))
                 curr = cameFrom[curr]!
             }
         }
+        path.append(centerPoint)
         
-        path.append(startWorld)
+        // Currently: Approach -> ... -> Center
+        // Reverse to get: Center -> ... -> Approach
+        var finalPath = path.reversed() as [CGPoint]
         
-        // Reverse so it goes Start -> Approach -> Door -> Exit
-        return path.reversed()
+        // Add final segments to get out the door
+        finalPath.append(approachPoint)
+        finalPath.append(doorCenter)
+        finalPath.append(exitPoint)
+        
+        return finalPath
     }
 }
