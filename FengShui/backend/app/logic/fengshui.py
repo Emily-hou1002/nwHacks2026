@@ -53,6 +53,63 @@ class FengShuiAnalyzer:
         self.suggestions: List[Suggestion] = []
         self.zone_scores: Dict[str, float] = {}
     
+    # ==================== SUGGESTION HELPER METHODS ====================
+    def _add_suggestion(self, id_str: str, title: str, description: str, 
+                       severity: str, related_object_ids: List[str] = None):
+        """Helper method to add suggestions with consistent formatting"""
+        if related_object_ids is None:
+            related_object_ids = []
+        
+        # Enhance description with context if available
+        description = self._enhance_description_with_context(description)
+        
+        self.suggestions.append(Suggestion(
+            id=id_str,
+            title=title,
+            description=description,
+            severity=severity,
+            related_object_ids=related_object_ids
+        ))
+    
+    def _enhance_description_with_context(self, description: str) -> str:
+        """Enhance description with room_style and intention context"""
+        metadata = self.request.room_metadata
+        enhancements = []
+        
+        if metadata.room_style:
+            style_context = {
+                "modern": "Consider sleek, minimalist solutions that maintain the modern aesthetic.",
+                "minimalist": "Keep solutions simple and uncluttered to preserve the minimalist vibe.",
+                "traditional": "Traditional Feng Shui principles work well with your decor style.",
+                "zen": "This aligns with Zen philosophy - simplicity and natural flow.",
+                "bohemian": "Bohemian style already embraces natural elements and flow.",
+                "industrial": "Metal and wood elements can enhance energy in industrial spaces.",
+                "contemporary": "Contemporary design can incorporate modern Feng Shui solutions.",
+                "rustic": "Natural materials and earth tones support positive energy flow.",
+                "luxury": "Luxury spaces benefit from attention to detail in energy flow."
+            }
+            if metadata.room_style.lower() in style_context:
+                enhancements.append(style_context[metadata.room_style.lower()])
+        
+        if metadata.feng_shui_intention:
+            intention_context = {
+                "wealth": "This improvement supports your wealth intention and financial prosperity.",
+                "career": "This change enhances your career zone and professional success.",
+                "health": "This supports your health focus and overall wellbeing.",
+                "love": "This improvement strengthens relationship energy in your space.",
+                "balance": "This helps achieve the balance you're seeking.",
+                "knowledge": "This supports your learning and wisdom goals.",
+                "creativity": "This enhances creative energy flow in your space.",
+                "family": "This improvement strengthens family connections and harmony.",
+                "fame": "This supports recognition and reputation energy."
+            }
+            if metadata.feng_shui_intention.lower() in intention_context:
+                enhancements.append(intention_context[metadata.feng_shui_intention.lower()])
+        
+        if enhancements:
+            return description + " " + " ".join(enhancements)
+        return description
+    
     def analyze(self) -> Tuple[int, List[BaguaAnalysis], List[Suggestion], Dict[str, List[str]]]:
         """
         Main analysis method - returns (score, bagua_analysis, suggestions, ui_hints_dict)
@@ -125,13 +182,13 @@ class FengShuiAnalyzer:
                     # Bad: bed is aligned with door
                     severity = "high" if distance < 3.0 else "medium"
                     
-                    self.suggestions.append(Suggestion(
-                        id=f"bed_door_alignment_{bed.id}",
+                    self._add_suggestion(
+                        id_str=f"bed_door_alignment_{bed.id}",
                         title="Move bed away from door alignment",
                         description=f"Your bed is positioned in line with the door entrance, which disrupts energy flow and can reduce rest quality. Position your bed so it's not directly aligned with the door (ideally at a 45-degree angle or perpendicular).",
                         severity=severity,
                         related_object_ids=[bed.id, door.id]
-                    ))
+                    )
                     
                     self.zone_scores["health"] = self.zone_scores.get("health", 75) - 25
                     self.zone_scores["love"] = self.zone_scores.get("love", 75) - 20
@@ -141,6 +198,15 @@ class FengShuiAnalyzer:
                     # Bonus for proper bed placement
                     self.zone_scores["health"] = self.zone_scores.get("health", 75) + 15
                     self.zone_scores["love"] = self.zone_scores.get("love", 75) + 10
+                    
+                    # Positive suggestion for good bed placement
+                    self._add_suggestion(
+                        id_str=f"bed_good_placement_{bed.id}",
+                        title="Excellent bed placement",
+                        description=f"Your bed is well-positioned away from the door entrance, which promotes restful sleep and positive energy flow. This placement supports health and relationship energy in your bedroom.",
+                        severity="low",
+                        related_object_ids=[bed.id]
+                    )
     
     # RULE 2: DESK COMMAND POSITION (OFFICE) 
     def _check_desk_command_position(self):
@@ -176,13 +242,13 @@ class FengShuiAnalyzer:
             # Desk is in command position if facing within ±60° of door direction
             # If facing >90° away from door, it's facing the wall (bad)
             if facing_diff > 90:  # Desk facing away from door (facing wall)
-                self.suggestions.append(Suggestion(
-                    id=f"desk_command_{desk.id}",
+                self._add_suggestion(
+                    id_str=f"desk_command_{desk.id}",
                     title="Reposition desk for command position",
                     description="Your desk is facing the wall instead of the room entrance. The 'command position' principle states that you should be able to see the door from your desk. This enhances focus, reduces stress, and supports career success.",
                     severity="high",
                     related_object_ids=[desk.id]
-                ))
+                )
                 
                 self.zone_scores["career"] = self.zone_scores.get("career", 75) - 30
                 self.zone_scores["wealth"] = self.zone_scores.get("wealth", 75) - 15
@@ -190,6 +256,15 @@ class FengShuiAnalyzer:
                 # Good position - boost career zone significantly
                 self.zone_scores["career"] = self.zone_scores.get("career", 75) + 20
                 self.zone_scores["wealth"] = self.zone_scores.get("wealth", 75) + 10
+                
+                # Positive suggestion for good command position
+                self._add_suggestion(
+                    id_str=f"desk_good_command_{desk.id}",
+                    title="Perfect command position",
+                    description="Your desk is in the ideal 'command position' - you can see the door while working. This placement enhances focus, reduces stress, and supports career success and financial prosperity.",
+                    severity="low",
+                    related_object_ids=[desk.id]
+                )
     
     # RULE 3: CLUTTER DENSITY 
     def _check_clutter_density(self):
@@ -211,13 +286,13 @@ class FengShuiAnalyzer:
         if coverage_ratio > CLUTTER_THRESHOLD:
             severity = "high" if coverage_ratio > 0.75 else "medium"
             
-            self.suggestions.append(Suggestion(
-                id="clutter_density",
+            self._add_suggestion(
+                id_str="clutter_density",
                 title="Reduce clutter density",
                 description=f"Your room has high furniture density ({coverage_ratio*100:.0f}% coverage). Clutter blocks energy flow (chi) and can create stress. Consider removing unnecessary items or reorganizing to create more open space.",
                 severity=severity,
                 related_object_ids=[]
-            ))
+            )
             
             # Penalty to all zones - more severe for high clutter
             penalty_multiplier = 20 if coverage_ratio > 0.75 else 15
@@ -230,19 +305,28 @@ class FengShuiAnalyzer:
             # Good balance - bonus for optimal spacing
             for zone in ["balance", "health"]:
                 self.zone_scores[zone] = self.zone_scores.get(zone, 75) + 10
+            
+            # Positive suggestion for optimal clutter balance
+            self._add_suggestion(
+                id_str="clutter_optimal_balance",
+                title="Well-organized space",
+                description=f"Your room has an excellent balance of furniture and open space ({coverage_ratio*100:.0f}% coverage). This optimal density allows energy (chi) to flow freely while maintaining functionality. Keep this balance to support harmony and wellbeing.",
+                severity="low",
+                related_object_ids=[]
+            )
     
     # RULE 4: NATURAL LIGHT ACCESS 
     def _check_natural_light(self):
         """Check window placement and obstructions for natural light"""
         if not self.windows:
             # No windows - negative impact
-            self.suggestions.append(Suggestion(
-                id="no_windows",
+            self._add_suggestion(
+                id_str="no_windows",
                 title="Room lacks natural light",
                 description="No windows detected in this room. Natural light is essential for positive energy (chi) flow. If possible, keep doors open during the day or use mirrors to reflect light from other rooms.",
                 severity="medium",
                 related_object_ids=[]
-            ))
+            )
             
             self.zone_scores["health"] = self.zone_scores.get("health", 75) - 25
             self.zone_scores["balance"] = self.zone_scores.get("balance", 75) - 20
@@ -264,17 +348,41 @@ class FengShuiAnalyzer:
                     obstructing_objects.append(obj)
             
             if obstructing_objects:
-                self.suggestions.append(Suggestion(
-                    id=f"window_obstruction_{window.id}",
+                self._add_suggestion(
+                    id_str=f"window_obstruction_{window.id}",
                     title="Clear space around windows",
                     description=f"Furniture is positioned too close to windows, blocking natural light. Move objects at least 1 meter away from windows to allow positive energy (chi) to flow freely into the room.",
                     severity="medium",
                     related_object_ids=[w.id for w in [window] + obstructing_objects[:3]]
-                ))
+                )
                 
                 self.zone_scores["health"] = self.zone_scores.get("health", 75) - 15
         
         # Having plants near windows is good - significant bonus
+        windows_unobstructed = True
+        for window in self.windows:
+            window_pos = window.position
+            obstructing = [
+                obj for obj in self.request.objects
+                if obj.type.lower() not in {"window", "door"}
+                and calculate_distance(window_pos, obj.position) < 1.0
+                and calculate_object_area(obj) > 0.5
+            ]
+            if obstructing:
+                windows_unobstructed = False
+                break
+        
+        if windows_unobstructed and self.windows:
+            # Positive suggestion for unobstructed windows
+            window_count_text = "multiple windows" if len(self.windows) >= 2 else "window"
+            self._add_suggestion(
+                id_str="natural_light_excellent",
+                title="Excellent natural light access",
+                description=f"Your room has {window_count_text} with clear, unobstructed access to natural light. This allows positive energy (chi) to flow freely, enhancing health and balance. Natural light supports circadian rhythms and overall wellbeing.",
+                severity="low",
+                related_object_ids=[w.id for w in self.windows[:3]]
+            )
+        
         if self.plants and self.windows:
             plant_window_proximity = any(
                 calculate_distance(plant.position, window.position) < 2.0
@@ -284,6 +392,15 @@ class FengShuiAnalyzer:
             if plant_window_proximity:
                 self.zone_scores["health"] = self.zone_scores.get("health", 75) + 15
                 self.zone_scores["balance"] = self.zone_scores.get("balance", 75) + 15
+                
+                # Positive suggestion for plants near windows
+                self._add_suggestion(
+                    id_str="plants_near_windows",
+                    title="Plants enhance natural light",
+                    description="Your plants are positioned near windows, which amplifies positive energy flow. Plants near windows create a natural connection between indoor and outdoor energy, enhancing both health and balance zones.",
+                    severity="low",
+                    related_object_ids=[p.id for p in self.plants[:3]]
+                )
         
         # Bonus for having multiple windows (good natural light)
         if len(self.windows) >= 2:
@@ -354,13 +471,13 @@ class FengShuiAnalyzer:
                     blocking_objects.append(obj)
             
             if len(blocking_objects) >= 2:  # Changed from >2 to >=2
-                self.suggestions.append(Suggestion(
-                    id="walking_paths_blocked",
+                self._add_suggestion(
+                    id_str="walking_paths_blocked",
                     title="Clear walking paths",
                     description=f"Multiple objects are blocking clear pathways through the room. Maintain at least {min_path_width*100:.0f}cm clear space for walking paths to allow energy (chi) to flow freely. This reduces obstacles and promotes positive movement.",
                     severity="medium",
                     related_object_ids=[obj.id for obj in blocking_objects[:5]]
-                ))
+                )
                 
                 self.zone_scores["balance"] = self.zone_scores.get("balance", 75) - 20
                 self.zone_scores["health"] = self.zone_scores.get("health", 75) - 10
@@ -368,6 +485,15 @@ class FengShuiAnalyzer:
                 # Good: clear paths throughout room
                 self.zone_scores["balance"] = self.zone_scores.get("balance", 75) + 12
                 self.zone_scores["health"] = self.zone_scores.get("health", 75) + 8
+                
+                # Positive suggestion for clear walking paths
+                self._add_suggestion(
+                    id_str="walking_paths_clear",
+                    title="Clear pathways throughout room",
+                    description=f"Your room has excellent clear pathways from the entrance to all areas. Maintain at least {min_path_width*100:.0f}cm clear space allows energy (chi) to flow freely, promoting movement and positive energy circulation. This supports balance and overall wellbeing.",
+                    severity="low",
+                    related_object_ids=[]
+                )
     
     # BAGUA ZONE SCORING 
     def _calculate_bagua_scores(self):
