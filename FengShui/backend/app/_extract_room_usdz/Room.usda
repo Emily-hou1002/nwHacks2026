@@ -1,0 +1,176 @@
+#usda 1.0
+(
+    defaultPrim = "Room"
+    metersPerUnit = 1
+    upAxis = "Y"
+)
+
+def Xform "Room" (
+    kind = "assembly"
+)
+{
+    def Xform "Section_grp" (
+        kind = "group"
+    )
+    {
+    }
+
+    def Xform "Mesh_grp" (
+        kind = "group"
+    )
+    {
+        def Xform "Arch_grp" (
+            kind = "group"
+        )
+        {
+            def Xform "Wall_0_grp" (
+                kind = "group"
+                prepend references = [
+                    @./assets/Mesh/Walls/Wall0/Wall0.usda@,
+                    @./assets/Mesh/Walls/Wall0/Door0.usda@
+                ]
+            )
+            {
+            }
+
+            def Xform "Wall_1_grp" (
+                kind = "group"
+                prepend references = @./assets/Mesh/Walls/Wall1/Wall1.usda@
+            )
+            {
+            }
+
+            def Xform "Wall_2_grp" (
+                kind = "group"
+                prepend references = @./assets/Mesh/Walls/Wall2/Wall2.usda@
+            )
+            {
+            }
+
+            def Xform "Wall_3_grp" (
+                kind = "group"
+                prepend references = @./assets/Mesh/Walls/Wall3/Wall3.usda@
+            )
+            {
+            }
+
+            def Xform "Wall_4_grp" (
+                kind = "group"
+                prepend references = @./assets/Mesh/Walls/Wall4/Wall4.usda@
+            )
+            {
+            }
+
+            def Xform "Wall_5_grp" (
+                kind = "group"
+                prepend references = @./assets/Mesh/Walls/Wall5/Wall5.usda@
+            )
+            {
+            }
+
+            def Xform "Wall_6_grp" (
+                kind = "group"
+                prepend references = @./assets/Mesh/Walls/Wall6/Wall6.usda@
+            )
+            {
+            }
+
+            def Xform "Wall_7_grp" (
+                kind = "group"
+                prepend references = @./assets/Mesh/Walls/Wall7/Wall7.usda@
+            )
+            {
+            }
+
+            def Xform "Wall_8_grp" (
+                kind = "group"
+                prepend references = @./assets/Mesh/Walls/Wall8/Wall8.usda@
+            )
+            {
+            }
+
+            def Xform "Wall_9_grp" (
+                kind = "group"
+                prepend references = @./assets/Mesh/Walls/Wall9/Wall9.usda@
+            )
+            {
+            }
+
+            def Xform "Wall_10_grp" (
+                kind = "group"
+                prepend references = @./assets/Mesh/Walls/Wall10/Wall10.usda@
+            )
+            {
+            }
+
+            def Xform "Wall_11_grp" (
+                kind = "group"
+                prepend references = @./assets/Mesh/Walls/Wall11/Wall11.usda@
+            )
+            {
+            }
+
+            def Xform "Wall_12_grp" (
+                kind = "group"
+                prepend references = [
+                    @./assets/Mesh/Walls/Wall12/Wall12.usda@,
+                    @./assets/Mesh/Walls/Wall12/Window0.usda@,
+                    @./assets/Mesh/Walls/Wall12/Window1.usda@,
+                    @./assets/Mesh/Walls/Wall12/Window2.usda@
+                ]
+            )
+            {
+            }
+        }
+
+        def Xform "Floor_grp" (
+            kind = "group"
+            prepend references = @./assets/Mesh/Floors/Floor0.usda@
+        )
+        {
+        }
+
+        def Xform "Object_grp" (
+            kind = "group"
+        )
+        {
+            def Xform "Table_grp" (
+                kind = "group"
+                prepend references = [
+                    @./assets/Mesh/Table/Table0.usda@,
+                    @./assets/Mesh/Table/Table1.usda@,
+                    @./assets/Mesh/Table/Table2.usda@,
+                    @./assets/Mesh/Table/Table3.usda@
+                ]
+            )
+            {
+            }
+
+            def Xform "Chair_grp" (
+                kind = "group"
+                prepend references = [
+                    @./assets/Mesh/Chair/Chair0.usda@,
+                    @./assets/Mesh/Chair/Chair1.usda@,
+                    @./assets/Mesh/Chair/Chair2.usda@,
+                    @./assets/Mesh/Chair/Chair3.usda@,
+                    @./assets/Mesh/Chair/Chair4.usda@,
+                    @./assets/Mesh/Chair/Chair5.usda@,
+                    @./assets/Mesh/Chair/Chair6.usda@,
+                    @./assets/Mesh/Chair/Chair7.usda@,
+                    @./assets/Mesh/Chair/Chair8.usda@,
+                    @./assets/Mesh/Chair/Chair9.usda@,
+                    @./assets/Mesh/Chair/Chair10.usda@,
+                    @./assets/Mesh/Chair/Chair11.usda@,
+                    @./assets/Mesh/Chair/Chair12.usda@,
+                    @./assets/Mesh/Chair/Chair13.usda@,
+                    @./assets/Mesh/Chair/Chair14.usda@,
+                    @./assets/Mesh/Chair/Chair15.usda@,
+                    @./assets/Mesh/Chair/Chair16.usda@
+                ]
+            )
+            {
+            }
+        }
+    }
+}
+

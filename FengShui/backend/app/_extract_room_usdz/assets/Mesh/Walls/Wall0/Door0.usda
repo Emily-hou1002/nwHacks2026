@@ -1,0 +1,48 @@
+#usda 1.0
+(
+    defaultPrim = "Door0"
+    metersPerUnit = 1
+    upAxis = "Y"
+)
+
+def Xform "Door0" (
+    assetInfo = {
+        asset identifier = @./Door0.usda@
+        string name = "Door0"
+    }
+    customData = {
+        string Category = "Door(Isopen: False)"
+        string UUID = "6602E6DF-9FC4-4DBE-A4CF-CDDED9AC51FF"
+    }
+    kind = "component"
+)
+{
+    def Mesh "Door0"
+    {
+        int[] faceVertexCounts = [3, 3, 3, 3, 3, 3, 3, 3, 3, 3, 3, 3]
+        int[] faceVertexIndices = [0, 1, 2, 0, 3, 1, 5, 7, 4, 6, 5, 4, 8, 9, 10, 10, 11, 8, 12, 13, 14, 14, 15, 12, 16, 17, 18, 18, 19, 16, 20, 21, 22, 20, 22, 23]
+        rel material:binding = </Door0/Door0_color>
+        normal3f[] normals = [(0, 0, 1), (0, 0, 1), (0, 0, 1), (0, 0, 1), (0, 0, -1), (0, 0, -1), (0, 0, -1), (0, 0, -1), (1, 0, 0), (1, 0, 0), (1, 0, 0), (1, 0, 0), (-0, 1, 0), (-0, 1, 0), (-0, 1, 0), (-0, 1, 0), (-1, 0, 0), (-1, 0, 0), (-1, 0, 0), (-1, 0, 0), (0, -1, 0), (0, -1, 0), (0, -1, 0), (0, -1, 0)]
+        point3f[] points = [(-0.47349203, -1.1731498, 0), (0.47349203, 1.1731498, 0), (-0.47349203, 1.1731498, 0), (0.47349203, -1.1731498, 0), (-0.47349203, -1.1731498, -0.08), (0.47349203, 1.1731498, -0.08), (-0.47349203, 1.1731498, -0.08), (0.47349203, -1.1731498, -0.08), (0.47349203, 1.1731498, 0), (0.47349203, -1.1731498, 0), (0.47349203, -1.1731498, -0.08), (0.47349203, 1.1731498, -0.08), (-0.47349203, 1.1731498, 0), (0.47349203, 1.1731498, 0), (0.47349203, 1.1731498, -0.08), (-0.47349203, 1.1731498, -0.08), (-0.47349203, -1.1731498, 0), (-0.47349203, 1.1731498, 0), (-0.47349203, 1.1731498, -0.08), (-0.47349203, -1.1731498, -0.08), (0.47349203, -1.1731498, 0), (-0.47349203, -1.1731498, 0), (-0.47349203, -1.1731498, -0.08), (0.47349203, -1.1731498, -0.08)]
+        uniform token subdivisionScheme = "none"
+        matrix4d xformOp:transform = ( (0.9430696368217468, 0, -0.3325952887535095, 0), (0, 0.9999997615814209, 0, 0), (0.3325952887535095, 0, 0.943069577217102, 0), (-0.5099621415138245, -0.32379525899887085, -2.73691725730896, 1) )
+        uniform token[] xformOpOrder = ["xformOp:transform"]
+    }
+
+    def Material "Door0_color"
+    {
+        token outputs:surface.connect = </Door0/Door0_color/surfaceShader.outputs:surface>
+
+        def Shader "surfaceShader"
+        {
+            uniform token info:id = "UsdPreviewSurface"
+            color3f inputs:diffuseColor = (0, 0, 0)
+            color3f inputs:emissiveColor = (0, 0, 0)
+            normal3f inputs:normal = (1, 1, 1)
+            float inputs:occlusion = 1
+            float inputs:opacity = 0
+            token outputs:surface
+        }
+    }
+}
+

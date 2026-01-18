@@ -1,0 +1,48 @@
+#usda 1.0
+(
+    defaultPrim = "Wall8"
+    metersPerUnit = 1
+    upAxis = "Y"
+)
+
+def Xform "Wall8" (
+    assetInfo = {
+        asset identifier = @./Wall8.usda@
+        string name = "Wall8"
+    }
+    customData = {
+        string Category = "Wall"
+        string UUID = "7371FA19-6E06-484B-8343-DCD93BB3C8A8"
+    }
+    kind = "component"
+)
+{
+    def Mesh "Wall8"
+    {
+        int[] faceVertexCounts = [3, 3, 3, 3, 3, 3, 3, 3, 3, 3, 3, 3]
+        int[] faceVertexIndices = [0, 1, 2, 0, 2, 3, 7, 6, 4, 6, 5, 4, 8, 9, 10, 8, 10, 11, 12, 13, 14, 12, 14, 15, 16, 17, 18, 16, 18, 19, 20, 21, 22, 20, 22, 23]
+        rel material:binding = </Wall8/Wall8_color>
+        normal3f[] normals = [(0, 0, 1), (0, 0, 1), (0, 0, 1), (0, 0, 1), (0, 0, -1), (0, 0, -1), (0, 0, -1), (0, 0, -1), (0, 1, 0), (0, 1, 0), (0, 1, 0), (0, 1, 0), (0, -1, 0), (0, -1, 0), (0, -1, 0), (0, -1, 0), (0.99999994, 0, 0), (0.99999994, 0, 0), (0.99999994, 0, 0), (0.99999994, 0, 0), (-0.99999994, 0, 0), (-0.99999994, 0, 0), (-0.99999994, 0, 0), (-0.99999994, 0, 0)]
+        point3f[] points = [(-0.5523603, -1.7104865, 0), (0.5523603, -1.7104865, 0), (0.5523603, 1.7104865, 0), (-0.5523603, 1.7104865, 0), (-0.5523603, -1.7104865, -0.16), (0.5523603, -1.7104865, -0.16), (0.5523603, 1.7104865, -0.16), (-0.5523603, 1.7104865, -0.16), (-0.5523603, 1.7104865, 0), (0.5523603, 1.7104865, 0), (0.5523603, 1.7104865, -0.16), (-0.5523603, 1.7104865, -0.16), (0.5523603, -1.7104865, 0), (-0.5523603, -1.7104865, 0), (-0.5523603, -1.7104865, -0.16), (0.5523603, -1.7104865, -0.16), (0.5523603, 1.7104865, 0), (0.5523603, -1.7104865, 0), (0.5523603, -1.7104865, -0.16), (0.5523603, 1.7104865, -0.16), (-0.5523603, -1.7104865, 0), (-0.5523603, 1.7104865, 0), (-0.5523603, 1.7104865, -0.16), (-0.5523603, -1.7104865, -0.16)]
+        uniform token subdivisionScheme = "none"
+        matrix4d xformOp:transform = ( (-0.9453275799751282, 0, 0.3261221647262573, 0), (0, 0.9999998807907104, 0, 0), (-0.3261221945285797, 0, -0.945327639579773, 0), (4.64583683013916, 0.2135414034128189, 5.8088788986206055, 1) )
+        uniform token[] xformOpOrder = ["xformOp:transform"]
+    }
+
+    def Material "Wall8_color"
+    {
+        token outputs:surface.connect = </Wall8/Wall8_color/surfaceShader.outputs:surface>
+
+        def Shader "surfaceShader"
+        {
+            uniform token info:id = "UsdPreviewSurface"
+            color3f inputs:diffuseColor = (1, 1, 1)
+            color3f inputs:emissiveColor = (0, 0, 0)
+            normal3f inputs:normal = (1, 1, 1)
+            float inputs:occlusion = 1
+            float inputs:opacity = 1
+            token outputs:surface
+        }
+    }
+}
+

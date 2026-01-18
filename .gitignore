@@ -6,3 +6,15 @@
 .env.*
 FengShui/.env
 FengShui/.env.*
+
+# Uploaded files
+FengShui/backend/uploads/
+uploads/
+
+# Optimized models cache
+FengShui/backend/optimized/
+optimized/
+
+# Cache metadata
+FengShui/backend/cache_metadata/
+cache_metadata/
