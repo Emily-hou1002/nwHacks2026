@@ -9,8 +9,11 @@ class ScanSetupViewController: UIViewController, UIPickerViewDelegate, UIPickerV
     private let dateField = UITextField()
     private let nextButton = UIButton(type: .system)
     
+    // NEW: Debug Button
+    private let debugSkipButton = UIButton(type: .system)
+    
     // MARK: - Data Sources
-    private let roomTypes = ["Bedroom", "Office", "Living Room", "Kitchen", "Bathroom"]
+    private let roomTypes = ["Bedroom",  "Living Room", "Office", "Kitchen", "Dining Room", "Bathroom", "Meditation Room"]
     private let roomStyles = ["Traditional", "Minimalist", "Modern", "Bohemian", "Industrial"]
     private let intentions = ["Creativity", "Balance", "Knowledge", "Wealth", "Health", "Love"]
     
@@ -28,14 +31,12 @@ class ScanSetupViewController: UIViewController, UIPickerViewDelegate, UIPickerV
         setupUI()
         setupInputViews()
         
-        // Dismiss keyboard gesture
         let tap = UITapGestureRecognizer(target: self, action: #selector(dismissKeyboard))
         view.addGestureRecognizer(tap)
     }
     
     // MARK: - Setup UI
     private func setupUI() {
-        // Helper to style fields
         func configureField(_ field: UITextField, placeholder: String) {
             field.placeholder = placeholder
             field.borderStyle = .roundedRect
@@ -48,13 +49,20 @@ class ScanSetupViewController: UIViewController, UIPickerViewDelegate, UIPickerV
         configureField(intentionField, placeholder: "Feng Shui Intention")
         configureField(dateField, placeholder: "Birth Date (for Kua #)")
         
-        // Configure Button
+        // Main Continue Button
         nextButton.setTitle("Continue to Scan", for: .normal)
         nextButton.backgroundColor = .systemGreen
         nextButton.setTitleColor(.white, for: .normal)
         nextButton.layer.cornerRadius = 10
         nextButton.translatesAutoresizingMaskIntoConstraints = false
         nextButton.addTarget(self, action: #selector(didTapNext), for: .touchUpInside)
+        
+        // NEW: Debug Skip Button
+        debugSkipButton.setTitle("DEBUG: Skip to Processing (Load Room.usdz)", for: .normal)
+        debugSkipButton.setTitleColor(.systemRed, for: .normal)
+        debugSkipButton.titleLabel?.font = .systemFont(ofSize: 14)
+        debugSkipButton.translatesAutoresizingMaskIntoConstraints = false
+        debugSkipButton.addTarget(self, action: #selector(didTapDebugSkip), for: .touchUpInside)
         
         // Stack View
         let stack = UIStackView(arrangedSubviews: [
@@ -66,12 +74,14 @@ class ScanSetupViewController: UIViewController, UIPickerViewDelegate, UIPickerV
             intentionField,
             createLabel("When were you born?"),
             dateField,
-            nextButton
+            nextButton,
+            debugSkipButton // Add debug button to stack
         ])
         
         stack.axis = .vertical
         stack.spacing = 15
         stack.setCustomSpacing(30, after: dateField)
+        stack.setCustomSpacing(20, after: nextButton) // Space between main button and debug
         stack.translatesAutoresizingMaskIntoConstraints = false
         
         view.addSubview(stack)
@@ -93,23 +103,19 @@ class ScanSetupViewController: UIViewController, UIPickerViewDelegate, UIPickerV
     }
     
     private func setupInputViews() {
-        // Assign pickers to text fields
         roomTypeField.inputView = typePicker
         roomStyleField.inputView = stylePicker
         intentionField.inputView = intentionPicker
         dateField.inputView = datePicker
         
-        // Setup Date Picker
         datePicker.datePickerMode = .date
         datePicker.preferredDatePickerStyle = .wheels
         datePicker.addTarget(self, action: #selector(dateChanged), for: .valueChanged)
         
-        // Setup Delegates
         typePicker.delegate = self; typePicker.dataSource = self
         stylePicker.delegate = self; stylePicker.dataSource = self
         intentionPicker.delegate = self; intentionPicker.dataSource = self
         
-        // Toolbar
         let toolbar = UIToolbar()
         toolbar.sizeToFit()
         let doneButton = UIBarButtonItem(barButtonSystemItem: .done, target: self, action: #selector(dismissKeyboard))
@@ -134,7 +140,6 @@ class ScanSetupViewController: UIViewController, UIPickerViewDelegate, UIPickerV
     }
     
     @objc func didTapNext() {
-        // Validate Inputs
         guard let type = roomTypeField.text, !type.isEmpty,
               let style = roomStyleField.text, !style.isEmpty,
               let intention = intentionField.text, !intention.isEmpty,
@@ -145,18 +150,42 @@ class ScanSetupViewController: UIViewController, UIPickerViewDelegate, UIPickerV
             return
         }
         
-        // Create Data Object
-        let data = ScanData(
-            roomType: type,
-            roomStyle: style,
-            intention: intention,
-            birthDate: datePicker.date
-        )
+        let data = ScanData(roomType: type, roomStyle: style, intention: intention, birthDate: datePicker.date)
         
-        // Navigate to Scanner
         let scannerVC = ViewController()
         scannerVC.config = data
         navigationController?.pushViewController(scannerVC, animated: true)
+    }
+    
+    // MARK: - NEW DEBUG ACTION
+    @objc func didTapDebugSkip() {
+        print("DEBUG: Skipping scan, loading Room.usdz...")
+        
+        // 1. Create Dummy Data (since the form might be empty)
+        let dummyData = ScanData(
+            roomType: "Debug Room",
+            roomStyle: "Debug Style",
+            intention: "Testing",
+            birthDate: Date()
+        )
+        
+        // 2. Initialize Processing View Controller
+        let processingVC = ProcessingViewController()
+        processingVC.scanData = dummyData
+        
+        // 3. Look for 'Room.usdz' in the App Bundle
+        if let localURL = Bundle.main.url(forResource: "Room", withExtension: "usdz") {
+            processingVC.usdzURL = localURL
+            // Optional: Pass a dummy JSON if your processing script requires it, or handle nil safely
+            processingVC.jsonURL = Bundle.main.url(forResource: "Room", withExtension: "json")
+        } else {
+            print("⚠️ WARNING: Could not find 'Room.usdz' in the project bundle.")
+            // The ProcessingViewController has fallback logic (the chair), so it won't crash,
+            // but you should drag a file named "Room.usdz" into Xcode to see it.
+        }
+        
+        // 4. Go there
+        navigationController?.pushViewController(processingVC, animated: true)
     }
     
     // MARK: - PickerView DataSource & Delegate

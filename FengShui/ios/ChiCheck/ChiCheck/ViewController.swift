@@ -111,24 +111,25 @@ class ViewController: UIViewController {
         }
     }
     
-    func completeScan() {
-            let resultsVC = ResultsViewController()
+    // In ViewController.swift
+
+        func completeScan() {
+            // 1. Initialize the Processing Screen
+            let processingVC = ProcessingViewController()
             
-            // Pass the analysis data
-            // (In the future, you will generate this text based on your AR detection)
-            resultsVC.analysisText = """
-            Based on the scan of your \(config?.roomType ?? "room"), we detected good energy flow near the window.
+            // 2. Pass the user's original inputs
+            processingVC.scanData = config
             
-            Intention: \(config?.intention ?? "General")
+            // 3. Pass the file URLs
+            // NOTE: You need to ensure your Scanner has saved these files before calling this.
+            // If you are using RoomPlan, these are the URLs where you exported the capture.
             
-            Recommendation: 
-            Consider moving the furniture away from the entrance to improve the flow of Qi for \(config?.intention ?? "balance").
-            """
+            // Example:
+            // processingVC.usdzURL = mySavedUsdzURL
+            // processingVC.jsonURL = mySavedJsonURL
             
-            // Pass the original config if needed
-            resultsVC.scanData = config
-            
-            navigationController?.pushViewController(resultsVC, animated: true)
+            // 4. Push to Processing (NOT Results)
+            navigationController?.pushViewController(processingVC, animated: true)
         }
     
     

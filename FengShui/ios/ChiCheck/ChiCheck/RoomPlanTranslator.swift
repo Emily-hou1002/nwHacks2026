@@ -3,14 +3,11 @@ import RoomPlan
 import simd
 
 // MARK: - 1. Strict API Models
-// We prefix with 'FS' (Feng Shui) to avoid conflicts with other models.
-
 struct FSRequest: Encodable {
     let room_metadata: FSRoomMetadata
     let room_dimensions: FSRoomDimensions
     let objects: [FSRoomObject]
     
-    // Explicit encoding ensures "room_metadata" always comes before "objects"
     func encode(to encoder: Encoder) throws {
         var container = encoder.container(keyedBy: CodingKeys.self)
         try container.encode(room_metadata, forKey: .room_metadata)
@@ -59,7 +56,6 @@ struct FSRoomObject: Encodable {
     let rotation_deg: Double
     let dimensions: FSObjectDimensions
     
-    // STRICT ORDER: id -> type -> position -> rotation -> dimensions
     func encode(to encoder: Encoder) throws {
         var container = encoder.container(keyedBy: CodingKeys.self)
         try container.encode(id, forKey: .id)
@@ -88,7 +84,6 @@ struct FSObjectDimensions: Encodable {
     let width_m: Double
     let height_m: Double
     
-    // STRICT ORDER: length -> width -> height
     func encode(to encoder: Encoder) throws {
         var container = encoder.container(keyedBy: CodingKeys.self)
         try container.encode(length_m, forKey: .length_m)
@@ -110,24 +105,40 @@ class RoomPlanTranslator {
         birthYear: Int
     ) throws -> Data {
         
-        // --- 1. Map Metadata ---
+        // 1. Lowercase and Sanitize Inputs
+        let cleanType = roomType.lowercased().replacingOccurrences(of: " ", with: "_")
+        let cleanStyle = style.lowercased()
+        
+        // Map Intention
+        let rawIntention = intention.lowercased()
+        let cleanIntention: String
+        switch rawIntention {
+        case "love": cleanIntention = "relationships"
+        case "balance": cleanIntention = "health"
+        case "wealth", "fame", "health", "creativity", "knowledge", "career", "helpful_people":
+            cleanIntention = rawIntention
+        default:
+            cleanIntention = "health"
+        }
+        
+        // 2. Metadata
         let metadata = FSRoomMetadata(
-            room_type: roomType,
-            north_direction_deg: 0.0, // Default to 0 until Compass logic is added
-            room_style: style,
-            feng_shui_intention: intention,
+            room_type: cleanType,
+            north_direction_deg: 0.0,
+            room_style: cleanStyle,
+            feng_shui_intention: cleanIntention,
             birth_year: birthYear
         )
         
-        // --- 2. Map Room Dimensions ---
+        // 3. Room Dimensions (Clamped to avoid 0.0 errors)
         let bounds = calculateRoomBounds(room)
         let roomDims = FSRoomDimensions(
-            length_m: snap(bounds.depth),
-            width_m: snap(bounds.width),
-            height_m: 2.7 // Standard ceiling height assumption
+            length_m: clamp(bounds.depth),
+            width_m: clamp(bounds.width),
+            height_m: 2.7
         )
         
-        // --- 3. Map Objects ---
+        // 4. Objects
         var apiObjects: [FSRoomObject] = []
         
         for object in room.objects {
@@ -142,27 +153,27 @@ class RoomPlanTranslator {
             apiObjects.append(convert(surface: window, type: "window"))
         }
         
-        // --- 4. Build Payload ---
+        // 5. Payload Construction
         let requestPayload = FSRequest(
             room_metadata: metadata,
             room_dimensions: roomDims,
             objects: apiObjects
         )
         
-        // --- 5. Encode ---
+        // 6. Encode
         let encoder = JSONEncoder()
         encoder.outputFormatting = .prettyPrinted
-        // DO NOT USE .sortedKeys - it breaks our custom order
         
+        // Return standard JSON (one set of curly braces by default)
         return try encoder.encode(requestPayload)
     }
     
-    // MARK: - Helper Functions
+    // MARK: - Helpers
     
     private static func convert(object: CapturedRoom.Object) -> FSRoomObject {
         return createObject(
             id: object.identifier.uuidString,
-            type: mapCategory(object.category),
+            type: mapCategory(object.category).lowercased(), // Ensure type is lowercase
             transform: object.transform,
             dims: object.dimensions
         )
@@ -171,24 +182,23 @@ class RoomPlanTranslator {
     private static func convert(surface: CapturedRoom.Surface, type: String) -> FSRoomObject {
         return createObject(
             id: surface.identifier.uuidString,
-            type: type,
+            type: type.lowercased(), // Ensure type is lowercase
             transform: surface.transform,
             dims: surface.dimensions
         )
     }
     
     private static func createObject(id: String, type: String, transform: simd_float4x4, dims: simd_float3) -> FSRoomObject {
-        // Create Position
         let pos = FSPosition(
             x: snap(Float(transform.columns.3.x)),
             y: snap(Float(transform.columns.3.z))
         )
         
-        // Create Dimensions
+        // CLAMP DIMENSIONS HERE: Enforce min 0.1m thickness/width/height
         let objDims = FSObjectDimensions(
-            length_m: snap(Float(dims.z)), // Z maps to length/depth
-            width_m:  snap(Float(dims.x)),
-            height_m: snap(Float(dims.y))
+            length_m: clamp(Float(dims.z)),
+            width_m:  clamp(Float(dims.x)),
+            height_m: clamp(Float(dims.y))
         )
         
         return FSRoomObject(
@@ -200,12 +210,19 @@ class RoomPlanTranslator {
         )
     }
     
-    // MARK: - Math & Snap Helpers
+    // MARK: - Math Helpers
     
-    // "Snap" function: rounds to exactly 2 decimal places to keep JSON clean
+    // Rounds to 2 decimal places standard
     private static func snap(_ value: Float) -> Double {
-        let stringVal = String(format: "%.2f", value)
-        return Double(stringVal) ?? 0.0
+        let rounded = (value * 100).rounded() / 100
+        return Double(rounded)
+    }
+    
+    // Rounds AND enforces minimum value of 0.1
+    // This fixes "infinite thinness" backend errors
+    private static func clamp(_ value: Float) -> Double {
+        let rounded = (value * 100).rounded() / 100
+        return max(Double(rounded), 0.1)
     }
     
     private static func extractRotation(matrix: simd_float4x4) -> Float {
@@ -221,13 +238,12 @@ class RoomPlanTranslator {
         var minX: Float = 0, maxX: Float = 0
         var minZ: Float = 0, maxZ: Float = 0
         
-        let allItems = room.walls
-        if let first = allItems.first {
+        if let first = room.walls.first {
             minX = first.transform.columns.3.x; maxX = minX
             minZ = first.transform.columns.3.z; maxZ = minZ
         }
         
-        for item in allItems {
+        for item in room.walls {
             let x = item.transform.columns.3.x
             let z = item.transform.columns.3.z
             let halfW = item.dimensions.x / 2
