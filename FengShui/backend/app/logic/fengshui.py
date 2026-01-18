@@ -52,8 +52,12 @@ class FengShuiAnalyzer:
         
         self.suggestions: List[Suggestion] = []
         self.zone_scores: Dict[str, float] = {}
+        
+        # Track rule violations and compliances for AI context
+        self.rule_violations: List[str] = []  # e.g., ["bed_door_alignment", "clutter_density"]
+        self.rule_compliances: List[str] = []  # e.g., ["bed_good_placement", "natural_light_excellent"]
     
-    # ==================== SUGGESTION HELPER METHODS ====================
+    # Helper methods for suggestions
     def _add_suggestion(self, id_str: str, title: str, description: str, 
                        severity: str, related_object_ids: List[str] = None):
         """Helper method to add suggestions with consistent formatting"""
@@ -111,9 +115,6 @@ class FengShuiAnalyzer:
         return description
     
     def analyze(self) -> Tuple[int, List[BaguaAnalysis], List[Suggestion], Dict[str, List[str]]]:
-        """
-        Main analysis method - returns (score, bagua_analysis, suggestions, ui_hints_dict)
-        """
         # Run all rule checks based on room type
         if self.room_type == "bedroom":
             self._check_bed_facing_door()
@@ -207,10 +208,11 @@ class FengShuiAnalyzer:
                         severity="low",
                         related_object_ids=[bed.id]
                     )
+                    self.rule_compliances.append("bed_good_placement")
     
     # RULE 2: DESK COMMAND POSITION (OFFICE) 
     def _check_desk_command_position(self):
-        """Check if desk is in 'command position' - should face room, not wall"""
+        ## Check if desk is in 'command position' = should face room, not wall
         if not self.desks or not self.doors:
             return
         
@@ -249,6 +251,7 @@ class FengShuiAnalyzer:
                     severity="high",
                     related_object_ids=[desk.id]
                 )
+                self.rule_violations.append("desk_command_position")
                 
                 self.zone_scores["career"] = self.zone_scores.get("career", 75) - 30
                 self.zone_scores["wealth"] = self.zone_scores.get("wealth", 75) - 15
@@ -265,10 +268,11 @@ class FengShuiAnalyzer:
                     severity="low",
                     related_object_ids=[desk.id]
                 )
+                self.rule_compliances.append("desk_good_command")
     
     # RULE 3: CLUTTER DENSITY 
     def _check_clutter_density(self):
-        """Check if room is cluttered - too many objects in too little space"""
+        # Too many objects in too little space = clutter"""
         if not self.request.objects:
             return
         
@@ -293,6 +297,7 @@ class FengShuiAnalyzer:
                 severity=severity,
                 related_object_ids=[]
             )
+            self.rule_violations.append("clutter_density")
             
             # Penalty to all zones - more severe for high clutter
             penalty_multiplier = 20 if coverage_ratio > 0.75 else 15
@@ -314,10 +319,11 @@ class FengShuiAnalyzer:
                 severity="low",
                 related_object_ids=[]
             )
+            self.rule_compliances.append("clutter_optimal_balance")
     
     # RULE 4: NATURAL LIGHT ACCESS 
     def _check_natural_light(self):
-        """Check window placement and obstructions for natural light"""
+        # Check window placement and obstructions for natural light
         if not self.windows:
             # No windows - negative impact
             self._add_suggestion(
@@ -327,6 +333,7 @@ class FengShuiAnalyzer:
                 severity="medium",
                 related_object_ids=[]
             )
+            self.rule_violations.append("no_windows")
             
             self.zone_scores["health"] = self.zone_scores.get("health", 75) - 25
             self.zone_scores["balance"] = self.zone_scores.get("balance", 75) - 20
@@ -355,6 +362,7 @@ class FengShuiAnalyzer:
                     severity="medium",
                     related_object_ids=[w.id for w in [window] + obstructing_objects[:3]]
                 )
+                self.rule_violations.append("window_obstruction")
                 
                 self.zone_scores["health"] = self.zone_scores.get("health", 75) - 15
         
@@ -382,6 +390,7 @@ class FengShuiAnalyzer:
                 severity="low",
                 related_object_ids=[w.id for w in self.windows[:3]]
             )
+            self.rule_compliances.append("natural_light_excellent")
         
         if self.plants and self.windows:
             plant_window_proximity = any(
@@ -401,6 +410,7 @@ class FengShuiAnalyzer:
                     severity="low",
                     related_object_ids=[p.id for p in self.plants[:3]]
                 )
+                self.rule_compliances.append("plants_near_windows")
         
         # Bonus for having multiple windows (good natural light)
         if len(self.windows) >= 2:
@@ -409,7 +419,7 @@ class FengShuiAnalyzer:
     
     # RULE 5: CLEAR WALKING PATHS 
     def _check_walking_paths(self):
-        """Check if there are clear walking paths throughout the room"""
+        # Check if there are clear walking paths throughout the room
         if len(self.request.objects) < 2:
             return  # Need at least 2 objects to have paths between them
         
@@ -470,7 +480,7 @@ class FengShuiAnalyzer:
                 if dist_to_line < (min_path_width / 2 + obj_radius) and 0.1 < t < 0.9:
                     blocking_objects.append(obj)
             
-            if len(blocking_objects) >= 2:  # Changed from >2 to >=2
+            if len(blocking_objects) >= 2: 
                 self._add_suggestion(
                     id_str="walking_paths_blocked",
                     title="Clear walking paths",
@@ -478,6 +488,7 @@ class FengShuiAnalyzer:
                     severity="medium",
                     related_object_ids=[obj.id for obj in blocking_objects[:5]]
                 )
+                self.rule_violations.append("walking_paths_blocked")
                 
                 self.zone_scores["balance"] = self.zone_scores.get("balance", 75) - 20
                 self.zone_scores["health"] = self.zone_scores.get("health", 75) - 10
@@ -494,10 +505,11 @@ class FengShuiAnalyzer:
                     severity="low",
                     related_object_ids=[]
                 )
+                self.rule_compliances.append("walking_paths_clear")
     
     # BAGUA ZONE SCORING 
     def _calculate_bagua_scores(self):
-        """Calculate scores for each Bagua zone based on room analysis"""
+        # Calculate scores for each Bagua zone based on room analysis
         # Initialize base scores
         base_scores = {
             "wealth": 70,
@@ -575,7 +587,7 @@ class FengShuiAnalyzer:
     
     # OVERALL SCORING 
     def _calculate_overall_score(self) -> int:
-        """Calculate overall Feng Shui score from zone scores"""
+        # Calculate overall Feng Shui score from zone scores
         if not self.zone_scores:
             return 75
         
@@ -621,7 +633,7 @@ class FengShuiAnalyzer:
         return list(set(highlight_ids))  # Remove duplicates
     
     def _get_recommended_zones(self) -> List[str]:
-        """Get recommended zones based on intention and high scores"""
+        # Get recommended zones based on intention and high scores
         zones = []
         
         # Add intention if specified
