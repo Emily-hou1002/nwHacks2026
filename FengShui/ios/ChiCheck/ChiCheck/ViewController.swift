@@ -43,7 +43,7 @@ class ViewController: UIViewController {
         // Delegates
         roomCaptureView.delegate = self
         roomCaptureView.captureSession.delegate = self
-        
+
         let config = RoomCaptureSession.Configuration()
         roomCaptureView.captureSession.run(configuration: config)
     }
@@ -59,6 +59,12 @@ class ViewController: UIViewController {
             saveAndNavigate(room: room)
         }
     }
+    
+    // Helper wrapper for the selector
+    @objc func testFinish() {
+        completeScan()
+    }
+
     
     func saveAndNavigate(room: CapturedRoom) {
         if hasFinished { return }
@@ -104,6 +110,29 @@ class ViewController: UIViewController {
             print("Save error: \(error)")
         }
     }
+    
+    func completeScan() {
+            let resultsVC = ResultsViewController()
+            
+            // Pass the analysis data
+            // (In the future, you will generate this text based on your AR detection)
+            resultsVC.analysisText = """
+            Based on the scan of your \(config?.roomType ?? "room"), we detected good energy flow near the window.
+            
+            Intention: \(config?.intention ?? "General")
+            
+            Recommendation: 
+            Consider moving the furniture away from the entrance to improve the flow of Qi for \(config?.intention ?? "balance").
+            """
+            
+            // Pass the original config if needed
+            resultsVC.scanData = config
+            
+            navigationController?.pushViewController(resultsVC, animated: true)
+        }
+    
+    
+    
 }
 
 // Delegate Conformance
