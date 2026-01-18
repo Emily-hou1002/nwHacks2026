@@ -3,6 +3,9 @@ import RoomPlan
 
 class ViewController: UIViewController {
     
+    // 1. ADDED: Variable to receive user choices from the previous screen
+    var config: ScanData?
+    
     var roomCaptureView: RoomCaptureView!
     var currentRoom: CapturedRoom?
     var hasFinished = false
@@ -66,14 +69,28 @@ class ViewController: UIViewController {
         let jsonURL = docDir.appendingPathComponent("Room.json")
         
         do {
-            // 1. Save Raw Files Locally
+            // 1. Save USDZ (3D Model)
             try room.export(to: usdzURL)
             
-            let encoder = JSONEncoder()
-            let jsonData = try encoder.encode(room)
+            // 2. ADDED: Prepare Data for Translator
+            let calendar = Calendar.current
+            // Default to 1990 if date is missing for some reason
+            let birthYear = calendar.component(.year, from: config?.birthDate ?? Date(timeIntervalSince1970: 631152000))
+            
+            // 3. ADDED: Generate CUSTOM JSON using your Translator
+            // We use the 'config' passed from the previous screen
+            let jsonData = try RoomPlanTranslator.translate(
+                room: room,
+                roomType: config?.roomType ?? "Office",       // Default fallback
+                style: config?.roomStyle ?? "Modern",         // Default fallback
+                intention: config?.intention ?? "Balance",    // Default fallback
+                birthYear: birthYear
+            )
+            
+            // 4. Write Custom JSON to file
             try jsonData.write(to: jsonURL)
             
-            // 2. Navigate immediately (NO SHARE SHEET HERE)
+            // 5. Navigate
             DispatchQueue.main.async {
                 let processingVC = ProcessingViewController()
                 processingVC.usdzURL = usdzURL

@@ -3,7 +3,7 @@ import RoomPlan
 import simd
 
 // MARK: - 1. Strict API Models
-// We prefix with 'FS' (Feng Shui) to avoid conflicts with any previous structs.
+// We prefix with 'FS' (Feng Shui) to avoid conflicts with other models.
 
 struct FSRequest: Encodable {
     let room_metadata: FSRoomMetadata
@@ -113,7 +113,7 @@ class RoomPlanTranslator {
         // --- 1. Map Metadata ---
         let metadata = FSRoomMetadata(
             room_type: roomType,
-            north_direction_deg: 0.0,
+            north_direction_deg: 0.0, // Default to 0 until Compass logic is added
             room_style: style,
             feng_shui_intention: intention,
             birth_year: birthYear
@@ -124,7 +124,7 @@ class RoomPlanTranslator {
         let roomDims = FSRoomDimensions(
             length_m: snap(bounds.depth),
             width_m: snap(bounds.width),
-            height_m: 2.7
+            height_m: 2.7 // Standard ceiling height assumption
         )
         
         // --- 3. Map Objects ---
