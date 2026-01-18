@@ -136,7 +136,7 @@ class BirthDateViewController: UIViewController {
         view.addSubview(datePicker)
         
         // Continue Button
-        continueButton.setTitle("Continue to Scan", for: .normal)
+        continueButton.setTitle("continue to scan", for: .normal)
         continueButton.backgroundColor = .black
         continueButton.setTitleColor(.white, for: .normal)
         continueButton.titleLabel?.font = .systemFont(ofSize: 18, weight: .semibold)

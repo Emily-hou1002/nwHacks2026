@@ -25,30 +25,30 @@ enum SelectionType {
         switch self {
         case .roomType:
             return [
-                SelectionOption(title: "bedroom", icon: "bed.double.fill", description: "Rest & Rejuvenation"),
-                SelectionOption(title: "living room", icon: "sofa.fill", description: "Gathering & Connection"),
-                SelectionOption(title: "office", icon: "table.furniture.fill", description: "Focus & Productivity"),
-                SelectionOption(title: "kitchen", icon: "fork.knife", description: "Nourishment & Abundance"),
-                SelectionOption(title: "dining room", icon: "table.furniture.fill", description: "Unity & Togetherness"),
-                SelectionOption(title: "bathroom", icon: "drop.fill", description: "Cleansing & Renewal"),
-                SelectionOption(title: "meditation room", icon: "figure.mind.and.body", description: "Peace & Clarity")
+                SelectionOption(title: "bedroom", icon: "bed.double.fill", description: "rest & rejuvenation"),
+                SelectionOption(title: "living room", icon: "sofa.fill", description: "gathering & connection"),
+                SelectionOption(title: "office", icon: "table.furniture.fill", description: "focus & productivity"),
+                SelectionOption(title: "kitchen", icon: "fork.knife", description: "nourishment & abundance"),
+                SelectionOption(title: "dining room", icon: "table.furniture.fill", description: "unity & togetherness"),
+                SelectionOption(title: "bathroom", icon: "drop.fill", description: "cleansing & renewal"),
+                SelectionOption(title: "meditation room", icon: "figure.mind.and.body", description: "peace & clarity")
             ]
         case .roomStyle:
             return [
-                SelectionOption(title: "Traditional", icon: "building.columns.fill", description: "Timeless & Elegant"),
-                SelectionOption(title: "Minimalist", icon: "square.3.layers.3d", description: "Simple & Clean"),
-                SelectionOption(title: "Modern", icon: "lightbulb.fill", description: "Contemporary & Bold"),
-                SelectionOption(title: "Bohemian", icon: "paintpalette.fill", description: "Free & Eclectic"),
-                SelectionOption(title: "Industrial", icon: "gearshape.2.fill", description: "Raw & Urban")
+                SelectionOption(title: "traditional", icon: "building.columns.fill", description: "timeless & elegant"),
+                SelectionOption(title: "minimalist", icon: "square.3.layers.3d", description: "simple & clean"),
+                SelectionOption(title: "modern", icon: "lightbulb.fill", description: "contemporary & bold"),
+                SelectionOption(title: "bohemian", icon: "paintpalette.fill", description: "free & eclectic"),
+                SelectionOption(title: "industrial", icon: "gearshape.2.fill", description: "raw & urban")
             ]
         case .intention:
             return [
-                SelectionOption(title: "Creativity", icon: "sparkles", description: "Inspiration & Expression"),
-                SelectionOption(title: "Balance", icon: "circle.lefthalf.filled", description: "Harmony & Peace"),
-                SelectionOption(title: "Knowledge", icon: "book.fill", description: "Wisdom & Growth"),
-                SelectionOption(title: "Wealth", icon: "dollarsign.circle.fill", description: "Abundance & Prosperity"),
-                SelectionOption(title: "Health", icon: "heart.fill", description: "Vitality & Wellness"),
-                SelectionOption(title: "Love", icon: "heart.circle.fill", description: "Relationships & Connection")
+                SelectionOption(title: "creativity", icon: "sparkles", description: "inspiration & expression"),
+                SelectionOption(title: "balance", icon: "circle.lefthalf.filled", description: "harmony & peace"),
+                SelectionOption(title: "knowledge", icon: "book.fill", description: "wisdom & qrowth"),
+                SelectionOption(title: "wealth", icon: "dollarsign.circle.fill", description: "abundance & prosperity"),
+                SelectionOption(title: "health", icon: "heart.fill", description: "vitality & wellness"),
+                SelectionOption(title: "love", icon: "heart.circle.fill", description: "relationships & connection")
             ]
         }
     }
@@ -214,7 +214,7 @@ class BaguaSelectionViewController: UIViewController {
         view.addSubview(subtitleLabel)
         
         // Continue Button
-        continueButton.setTitle("Continue", for: .normal)
+        continueButton.setTitle("continue", for: .normal)
         continueButton.backgroundColor = .black
         continueButton.setTitleColor(.white, for: .normal)
         continueButton.titleLabel?.font = .systemFont(ofSize: 18, weight: .semibold)

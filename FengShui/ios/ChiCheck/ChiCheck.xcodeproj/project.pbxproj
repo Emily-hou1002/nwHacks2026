@@ -14,6 +14,7 @@
 		B992C9582F1C81CC0061822A /* Exceptions for "ChiCheck" folder in "ChiCheck" target */ = {
 			isa = PBXFileSystemSynchronizedBuildFileExceptionSet;
 			membershipExceptions = (
+				Assets.xcassets,
 				Info.plist,
 			);
 			target = B9C2D14C2F1C35E200D7E673 /* ChiCheck */;

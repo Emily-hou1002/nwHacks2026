@@ -43,7 +43,7 @@ class HarmonicSuggestionsViewController: UIViewController {
     override func viewDidLoad() {
         super.viewDidLoad()
         view.backgroundColor = .black
-        title = "Harmonic Suggestions"
+        title = "harmonic suggestions"
         navigationItem.hidesBackButton = true
         
         setupUI()
@@ -69,7 +69,7 @@ class HarmonicSuggestionsViewController: UIViewController {
         let urlString = "https://runnier-shaniqua-yeasty.ngrok-free.dev/get-optimized-model/\(fileId)"
         guard let url = URL(string: urlString) else { return }
         
-        print("🚀 [Lazy Load] Fetching optimized model from: \(url)")
+        print("🚀 [Lazy Load] fetching optimized model from: \(url)")
         
         // 3. Create Download Task
         let task = URLSession.shared.downloadTask(with: url) { [weak self] localURL, response, error in
@@ -77,7 +77,7 @@ class HarmonicSuggestionsViewController: UIViewController {
             
             // Handle Error
             if let error = error {
-                print("❌ Download Error: \(error)")
+                print("❌ download error: \(error)")
                 DispatchQueue.main.async { self.resetVisualizeButton(error: true) }
                 return
             }
@@ -129,10 +129,10 @@ class HarmonicSuggestionsViewController: UIViewController {
         visualizeButton.isEnabled = true
         
         if error {
-            visualizeButton.setTitle("Error - Try Again", for: .normal)
+            visualizeButton.setTitle("error - try again", for: .normal)
             visualizeButton.backgroundColor = .red.withAlphaComponent(0.5)
         } else {
-            visualizeButton.setTitle("Visualize This Change", for: .normal)
+            visualizeButton.setTitle("visualize this change", for: .normal)
             visualizeButton.backgroundColor = goldColor
         }
     }

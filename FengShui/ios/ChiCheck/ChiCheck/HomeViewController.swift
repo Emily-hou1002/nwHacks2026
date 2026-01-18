@@ -8,7 +8,7 @@ class HomeViewController: UIViewController {
 
     private let titleLabel: UILabel = {
         let label = UILabel()
-        label.text = "ChiCheck"
+        label.text = "ChiChek"
         
         let fontSize: CGFloat = 52
         let systemFont = UIFont.systemFont(ofSize: fontSize, weight: .bold)
@@ -34,7 +34,7 @@ class HomeViewController: UIViewController {
 
     private let missionLabel: UILabel = {
         let label = UILabel()
-        label.text = "Harmonize your space.\nElevate your energy."
+        label.text = "harmonize your space.\nelevate your energy."
         
         let fontSize: CGFloat = 18
         let systemFont = UIFont.systemFont(ofSize: fontSize, weight: .medium)
@@ -55,7 +55,7 @@ class HomeViewController: UIViewController {
 
     private let startButton: UIButton = {
         let button = UIButton(type: .system)
-        button.setTitle("Begin Analysis", for: .normal)
+        button.setTitle("begin analysis", for: .normal)
         button.titleLabel?.font = UIFont.systemFont(ofSize: 20, weight: .semibold)
         
         // NEW STYLING: Black background, white text, white border
