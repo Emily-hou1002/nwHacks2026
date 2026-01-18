@@ -4,16 +4,15 @@ class HomeViewController: UIViewController {
 
     // MARK: - UI Elements
 
-    private let gradientLayer = CAGradientLayer()
     private let baguaShapeLayer = CAShapeLayer()
 
     // 3. The App Title ("ChiCheck")
     private let titleLabel: UILabel = {
         let label = UILabel()
-        label.text = "ChiChek"
+        label.text = "chichek"
         
-        let fontSize: CGFloat = 52
-        let systemFont = UIFont.systemFont(ofSize: fontSize, weight: .bold)
+        let fontSize: CGFloat = 56
+        let systemFont = UIFont.systemFont(ofSize: fontSize, weight: .light) // Lighter weight for elegance
         if let descriptor = systemFont.fontDescriptor.withDesign(.serif) {
             label.font = UIFont(descriptor: descriptor, size: fontSize)
         } else {
@@ -25,52 +24,70 @@ class HomeViewController: UIViewController {
         label.alpha = 0
         label.translatesAutoresizingMaskIntoConstraints = false
         
+        // Gold accent glow
         label.layer.shadowColor = UIColor(red: 1.0, green: 0.84, blue: 0.0, alpha: 1.0).cgColor // Gold
-                label.layer.shadowOffset = CGSize(width: 0, height: 0)
-                label.layer.shadowOpacity = 0.6 // Starts softer
-                label.layer.shadowRadius = 10   // Starts smaller
+        label.layer.shadowOffset = CGSize(width: 0, height: 0)
+        label.layer.shadowOpacity = 0.7
+        label.layer.shadowRadius = 20
+        
+        // Letter spacing for luxury feel
+        let attributedString = NSMutableAttributedString(string: "chichek")
+        attributedString.addAttribute(.kern, value: 3.0, range: NSRange(location: 0, length: attributedString.length))
+        label.attributedText = attributedString
                 
-                return label
+        return label
     }()
 
     // 4. The Mission Statement
     private let missionLabel: UILabel = {
         let label = UILabel()
-        label.text = "Harmonize your space.\nElevate your energy."
+        label.text = "harmonize your space.\nelevate your energy."
         
-        let fontSize: CGFloat = 18
-        let systemFont = UIFont.systemFont(ofSize: fontSize, weight: .medium)
+        let fontSize: CGFloat = 16
+        let systemFont = UIFont.systemFont(ofSize: fontSize, weight: .regular)
         if let descriptor = systemFont.fontDescriptor.withDesign(.rounded) {
             label.font = UIFont(descriptor: descriptor, size: fontSize)
         } else {
             label.font = systemFont
         }
         
-        label.textColor = UIColor.white.withAlphaComponent(0.9)
+        label.textColor = UIColor.white.withAlphaComponent(0.85)
         label.textAlignment = .center
         label.numberOfLines = 0
         label.alpha = 0
         label.transform = CGAffineTransform(translationX: 0, y: 20)
         label.translatesAutoresizingMaskIntoConstraints = false
+        
+        // Subtle letter spacing for refinement
+        let attributedString = NSMutableAttributedString(string: "harmonize your space.\nelevate your energy.")
+        attributedString.addAttribute(.kern, value: 0.8, range: NSRange(location: 0, length: attributedString.length))
+        label.attributedText = attributedString
+        
         return label
     }()
 
     // 5. The "Begin Analysis" Button
     private let startButton: UIButton = {
         let button = UIButton(type: .system)
-        button.setTitle("Begin Analysis", for: .normal)
-        button.titleLabel?.font = UIFont.systemFont(ofSize: 20, weight: .semibold)
+        button.setTitle("begin analysis", for: .normal)
+        button.titleLabel?.font = UIFont.systemFont(ofSize: 18, weight: .regular)
         
-        button.backgroundColor = UIColor.white
-        button.setTitleColor(UIColor(red: 0.1, green: 0.3, blue: 0.3, alpha: 1.0), for: .normal)
+        // Subtle white border on black background
+        button.backgroundColor = UIColor.white.withAlphaComponent(0.1)
+        button.layer.borderWidth = 1
+        button.layer.borderColor = UIColor.white.withAlphaComponent(0.3).cgColor
         
-        button.layer.cornerRadius = 25
+        // White text
+        button.setTitleColor(.white, for: .normal)
+        
+        button.layer.cornerRadius = 28
         button.alpha = 0
         button.transform = CGAffineTransform(scaleX: 0.8, y: 0.8)
         
-        button.layer.shadowColor = UIColor.white.cgColor
+        // Soft gold glow
+        button.layer.shadowColor = UIColor(red: 1.0, green: 0.84, blue: 0.0, alpha: 1.0).cgColor
         button.layer.shadowOffset = .zero
-        button.layer.shadowOpacity = 0.6
+        button.layer.shadowOpacity = 0.3
         button.layer.shadowRadius = 15
         
         button.translatesAutoresizingMaskIntoConstraints = false
@@ -81,7 +98,10 @@ class HomeViewController: UIViewController {
 
     override func viewDidLoad() {
         super.viewDidLoad()
-        setupGradientBackground()
+        
+        // Black background
+        view.backgroundColor = .black
+        
         setupBaguaShape()
         setupUI()
         
@@ -95,52 +115,14 @@ class HomeViewController: UIViewController {
     
     override func viewDidLayoutSubviews() {
         super.viewDidLayoutSubviews()
-        gradientLayer.frame = view.bounds
-        baguaShapeLayer.position = CGPoint(x: view.center.x, y: view.center.y - 33)
+        baguaShapeLayer.position = CGPoint(x: view.center.x, y: view.center.y - 20)
     }
 
-    // MARK: - 1. Flowing Sand Background (UPDATED COLORS)
-
-    private func setupGradientBackground() {
-        // Baby Blue
-        let babyBlue = UIColor(red: 137/255, green: 207/255, blue: 240/255, alpha: 1.0).cgColor
-        // Mint Green
-        let mint = UIColor(red: 152/255, green: 255/255, blue: 152/255, alpha: 1.0).cgColor
-        
-        // UPDATED: Soft Sand/Gold (Removed the Purple/Aurora)
-        let softSand = UIColor(red: 240/255, green: 230/255, blue: 140/255, alpha: 1.0).cgColor
-        
-        // Initial State
-        gradientLayer.colors = [babyBlue, mint, softSand]
-        gradientLayer.startPoint = CGPoint(x: 0, y: 0)
-        gradientLayer.endPoint = CGPoint(x: 1, y: 1)
-        gradientLayer.frame = view.bounds
-        
-        view.layer.insertSublayer(gradientLayer, at: 0)
-
-        animateGradientFlow(colors: [babyBlue, mint, softSand])
-    }
-
-    private func animateGradientFlow(colors: [CGColor]) {
-        let set1 = [colors[0], colors[1], colors[2]]
-        let set2 = [colors[2], colors[0], colors[1]]
-        let set3 = [colors[1], colors[2], colors[0]]
-
-        let animation = CAKeyframeAnimation(keyPath: "colors")
-        animation.values = [set1, set2, set3, set1]
-        animation.keyTimes = [0, 0.33, 0.66, 1.0]
-        animation.duration = 8.0
-        animation.repeatCount = .infinity
-        animation.isRemovedOnCompletion = false
-        
-        gradientLayer.add(animation, forKey: "colorFlow")
-    }
-
-    // MARK: - 2. Bagua Shape (UPDATED VISIBILITY)
+    // MARK: - 2. Bagua Shape (Zen minimalist on black)
 
     private func setupBaguaShape() {
-        let width: CGFloat = 300
-        let height: CGFloat = 300
+        let width: CGFloat = 320
+        let height: CGFloat = 320
         
         let path = UIBezierPath()
         let points = [
@@ -157,28 +139,41 @@ class HomeViewController: UIViewController {
         baguaShapeLayer.path = path.cgPath
         baguaShapeLayer.fillColor = UIColor.clear.cgColor
         
-        // UPDATED: Make it much more obvious
-        baguaShapeLayer.strokeColor = UIColor.white.withAlphaComponent(0.8).cgColor // High Opacity
-        baguaShapeLayer.lineWidth = 6 // Thicker line
+        // Subtle gold accent
+        baguaShapeLayer.strokeColor = UIColor(red: 1.0, green: 0.84, blue: 0.0, alpha: 0.2).cgColor
+        baguaShapeLayer.lineWidth = 1.5
         
-        // Added Glow Effect to Bagua
-        baguaShapeLayer.shadowColor = UIColor.white.cgColor
-        baguaShapeLayer.shadowOpacity = 0.8
-        baguaShapeLayer.shadowRadius = 10
+        // Soft gold glow
+        baguaShapeLayer.shadowColor = UIColor(red: 1.0, green: 0.84, blue: 0.0, alpha: 1.0).cgColor
+        baguaShapeLayer.shadowOpacity = 0.3
+        baguaShapeLayer.shadowRadius = 20
         baguaShapeLayer.shadowOffset = .zero
         
         baguaShapeLayer.bounds = CGRect(x: 0, y: 0, width: width, height: height)
-        baguaShapeLayer.position = CGPoint(x: view.center.x, y: view.center.y - 33)
+        baguaShapeLayer.position = CGPoint(x: view.center.x, y: view.center.y - 20)
         
+        // Very slow, meditative rotation
         let rotation = CABasicAnimation(keyPath: "transform.rotation")
         rotation.fromValue = 0
         rotation.toValue = Double.pi * 2
-        rotation.duration = 60
+        rotation.duration = 120 // Ultra slow
         rotation.repeatCount = .infinity
+        rotation.timingFunction = CAMediaTimingFunction(name: .linear)
         
         baguaShapeLayer.add(rotation, forKey: "slowSpin")
         
-        view.layer.insertSublayer(baguaShapeLayer, above: gradientLayer)
+        // Subtle breathing effect
+        let breathe = CABasicAnimation(keyPath: "transform.scale")
+        breathe.fromValue = 0.98
+        breathe.toValue = 1.02
+        breathe.duration = 6.0
+        breathe.autoreverses = true
+        breathe.repeatCount = .infinity
+        breathe.timingFunction = CAMediaTimingFunction(name: .easeInEaseOut)
+        
+        baguaShapeLayer.add(breathe, forKey: "breathe")
+        
+        view.layer.addSublayer(baguaShapeLayer)
     }
 
     // MARK: - 3. UI Setup
@@ -190,66 +185,88 @@ class HomeViewController: UIViewController {
 
         NSLayoutConstraint.activate([
             titleLabel.centerXAnchor.constraint(equalTo: view.centerXAnchor),
-            titleLabel.centerYAnchor.constraint(equalTo: view.centerYAnchor, constant: -60),
+            titleLabel.centerYAnchor.constraint(equalTo: view.centerYAnchor, constant: -50),
 
-            missionLabel.topAnchor.constraint(equalTo: titleLabel.bottomAnchor, constant: 16),
+            // Much tighter spacing for premium, cohesive feel
+            missionLabel.topAnchor.constraint(equalTo: titleLabel.bottomAnchor, constant: 8),
             missionLabel.leadingAnchor.constraint(equalTo: view.leadingAnchor, constant: 40),
             missionLabel.trailingAnchor.constraint(equalTo: view.trailingAnchor, constant: -40),
 
-            startButton.bottomAnchor.constraint(equalTo: view.safeAreaLayoutGuide.bottomAnchor, constant: -80),
+            startButton.bottomAnchor.constraint(equalTo: view.safeAreaLayoutGuide.bottomAnchor, constant: -60),
             startButton.centerXAnchor.constraint(equalTo: view.centerXAnchor),
-            startButton.widthAnchor.constraint(equalToConstant: 220),
-            startButton.heightAnchor.constraint(equalToConstant: 55)
+            startButton.widthAnchor.constraint(equalToConstant: 240),
+            startButton.heightAnchor.constraint(equalToConstant: 56)
         ])
     }
 
     // MARK: - Animation Sequence
 
     private func animateSequence() {
-        UIView.animate(withDuration: 1.2, delay: 0.0, options: .curveEaseOut) {
-                    self.titleLabel.alpha = 1.0
-                } completion: { _ in
-                    self.animateTitleGlow()
-                }
+        // Gentle fade in for title
+        UIView.animate(withDuration: 1.5, delay: 0.0, options: .curveEaseOut) {
+            self.titleLabel.alpha = 1.0
+        } completion: { _ in
+            self.animateTitleGlow()
+        }
 
-        UIView.animate(withDuration: 1.0, delay: 0.8, options: .curveEaseOut) {
+        // Mission statement flows in
+        UIView.animate(withDuration: 1.2, delay: 0.8, options: .curveEaseOut) {
             self.missionLabel.alpha = 1.0
             self.missionLabel.transform = .identity
         }
 
-        UIView.animate(withDuration: 0.8, delay: 2.0, usingSpringWithDamping: 0.6, initialSpringVelocity: 0.5, options: .curveEaseOut) {
+        // Button appears with gentle spring
+        UIView.animate(withDuration: 1.0, delay: 1.8, usingSpringWithDamping: 0.7, initialSpringVelocity: 0.3, options: .curveEaseOut) {
             self.startButton.alpha = 1.0
             self.startButton.transform = .identity
+        } completion: { _ in
+            self.animateButtonBreathing()
         }
     }
     
-    // NEW FUNCTION: Makes the Golden Shadow Breathe/Gloom
-        private func animateTitleGlow() {
-            // Animate Radius (Expansion)
-            let radiusAnimation = CABasicAnimation(keyPath: "shadowRadius")
-            radiusAnimation.fromValue = 10
-            radiusAnimation.toValue = 30 // Glows outwards
-            radiusAnimation.duration = 2.5
-            radiusAnimation.autoreverses = true
-            radiusAnimation.repeatCount = .infinity
-            
-            // Animate Opacity (Intensity)
-            let opacityAnimation = CABasicAnimation(keyPath: "shadowOpacity")
-            opacityAnimation.fromValue = 0.6
-            opacityAnimation.toValue = 1.0 // Becomes intense gold
-            opacityAnimation.duration = 2.5
-            opacityAnimation.autoreverses = true
-            opacityAnimation.repeatCount = .infinity
-            
-            titleLabel.layer.add(radiusAnimation, forKey: "glowingShadow")
-            titleLabel.layer.add(opacityAnimation, forKey: "pulsingShadow")
+    // Soft breathing gold glow on title
+    private func animateTitleGlow() {
+        let radiusAnimation = CABasicAnimation(keyPath: "shadowRadius")
+        radiusAnimation.fromValue = 20
+        radiusAnimation.toValue = 30
+        radiusAnimation.duration = 3.0
+        radiusAnimation.autoreverses = true
+        radiusAnimation.repeatCount = .infinity
+        radiusAnimation.timingFunction = CAMediaTimingFunction(name: .easeInEaseOut)
+        
+        let opacityAnimation = CABasicAnimation(keyPath: "shadowOpacity")
+        opacityAnimation.fromValue = 0.7
+        opacityAnimation.toValue = 1.0
+        opacityAnimation.duration = 3.0
+        opacityAnimation.autoreverses = true
+        opacityAnimation.repeatCount = .infinity
+        opacityAnimation.timingFunction = CAMediaTimingFunction(name: .easeInEaseOut)
+        
+        titleLabel.layer.add(radiusAnimation, forKey: "glowingShadow")
+        titleLabel.layer.add(opacityAnimation, forKey: "pulsingShadow")
+    }
+    
+    // Subtle breathing animation for button
+    private func animateButtonBreathing() {
+        UIView.animate(withDuration: 2.5, delay: 0, options: [.repeat, .autoreverse, .allowUserInteraction]) {
+            self.startButton.transform = CGAffineTransform(scaleX: 1.03, y: 1.03)
         }
+    }
     
     // MARK: - Actions
 
     @objc func didTapStart() {
         let generator = UIImpactFeedbackGenerator(style: .medium)
         generator.impactOccurred()
+
+        // Add a subtle press animation
+        UIView.animate(withDuration: 0.1, animations: {
+            self.startButton.transform = CGAffineTransform(scaleX: 0.95, y: 0.95)
+        }) { _ in
+            UIView.animate(withDuration: 0.1) {
+                self.startButton.transform = .identity
+            }
+        }
 
         let setupVC = ScanSetupViewController()
         navigationController?.pushViewController(setupVC, animated: true)
