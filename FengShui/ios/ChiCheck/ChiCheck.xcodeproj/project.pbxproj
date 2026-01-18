@@ -10,9 +10,22 @@
 		B9C2D14D2F1C35E200D7E673 /* ChiCheck.app */ = {isa = PBXFileReference; explicitFileType = wrapper.application; includeInIndex = 0; path = ChiCheck.app; sourceTree = BUILT_PRODUCTS_DIR; };
 /* End PBXFileReference section */
 
+/* Begin PBXFileSystemSynchronizedBuildFileExceptionSet section */
+		B930347A2F1C521600FCB9E3 /* Exceptions for "ChiCheck" folder in "ChiCheck" target */ = {
+			isa = PBXFileSystemSynchronizedBuildFileExceptionSet;
+			membershipExceptions = (
+				Info.plist,
+			);
+			target = B9C2D14C2F1C35E200D7E673 /* ChiCheck */;
+		};
+/* End PBXFileSystemSynchronizedBuildFileExceptionSet section */
+
 /* Begin PBXFileSystemSynchronizedRootGroup section */
 		B9C2D14F2F1C35E200D7E673 /* ChiCheck */ = {
 			isa = PBXFileSystemSynchronizedRootGroup;
+			exceptions = (
+				B930347A2F1C521600FCB9E3 /* Exceptions for "ChiCheck" folder in "ChiCheck" target */,
+			);
 			path = ChiCheck;
 			sourceTree = "<group>";
 		};
@@ -254,7 +267,8 @@
 				DEVELOPMENT_TEAM = YW94C4LV6C;
 				ENABLE_PREVIEWS = YES;
 				GENERATE_INFOPLIST_FILE = YES;
-				INFOPLIST_KEY_NSCameraUsageDescription = CAMERA_USAGE_DESCRIPTION;
+				INFOPLIST_FILE = ChiCheck/Info.plist;
+				INFOPLIST_KEY_NSCameraUsageDescription = "Need access to yo camera lol";
 				INFOPLIST_KEY_UIApplicationSupportsIndirectInputEvents = YES;
 				INFOPLIST_KEY_UILaunchScreen_Generation = YES;
 				INFOPLIST_KEY_UIRequiredDeviceCapabilities = arkit;
@@ -290,7 +304,8 @@
 				DEVELOPMENT_TEAM = YW94C4LV6C;
 				ENABLE_PREVIEWS = YES;
 				GENERATE_INFOPLIST_FILE = YES;
-				INFOPLIST_KEY_NSCameraUsageDescription = CAMERA_USAGE_DESCRIPTION;
+				INFOPLIST_FILE = ChiCheck/Info.plist;
+				INFOPLIST_KEY_NSCameraUsageDescription = "Need access to yo camera lol";
 				INFOPLIST_KEY_UIApplicationSupportsIndirectInputEvents = YES;
 				INFOPLIST_KEY_UILaunchScreen_Generation = YES;
 				INFOPLIST_KEY_UIRequiredDeviceCapabilities = arkit;
