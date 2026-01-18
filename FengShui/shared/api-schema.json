@@ -1,0 +1,63 @@
+{
+    "version": "1.0",
+    "base_url": "https://<backend-url>",
+    "endpoints": {
+      "POST /analyze-room": {
+        "description": "Analyze a scanned room and return feng shui insights",
+        "request": {
+          "room_metadata": {
+            "room_type": "string (e.g. bedroom, office, living_room)",
+            "north_direction_deg": "float (0-360, optional)",
+            "room_style": "string (optional, one of: modern, minimalist, traditional, bohemian, scandinavian, industrial, contemporary, rustic)",
+            "feng_shui_intention": "string (optional, one of 8 Bagua zones: wealth, fame, relationships, health, creativity, knowledge, career, helpful_people)",
+            "birth_year": "int (optional, 1900-2024, for personalized Feng Shui calculations)"
+          },
+          "room_dimensions": {
+            "length_m": "float",
+            "width_m": "float",
+            "height_m": "float"
+          },
+          "objects": [
+            {
+              "id": "string",
+              "type": "string (bed, desk, sofa, door, window, plant, etc)",
+              "position": {
+                "x": "float",
+                "y": "float"
+              },
+              "rotation_deg": "float",
+              "dimensions": {
+                "length_m": "float",
+                "width_m": "float",
+                "height_m": "float"
+              }
+            }
+          ]
+        },
+        "response": {
+          "feng_shui_score": "int (0-100)",
+          "bagua_analysis": [
+            {
+              "zone": "string (wealth, health, career, relationships, etc)",
+              "score": "int (0-100)",
+              "notes": "string"
+            }
+          ],
+          "suggestions": [
+            {
+              "id": "string",
+              "title": "string",
+              "description": "string",
+              "severity": "string (low | medium | high)",
+              "related_object_ids": ["string"]
+            }
+          ],
+          "ui_hints": {
+            "highlight_objects": ["string"],
+            "recommended_zones": ["string"]
+          }
+        }
+      }
+    }
+  }
+  

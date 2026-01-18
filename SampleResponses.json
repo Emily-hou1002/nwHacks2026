@@ -1,0 +1,66 @@
+{
+    "feng_shui_score": 56,
+    "bagua_analysis": [
+        {
+            "zone": "wealth",
+            "score": 68,
+            "notes": "Wealth zone represents prosperity and abundance"
+        },
+        {
+            "zone": "health",
+            "score": 41,
+            "notes": "Health zone affects physical and mental wellbeing"
+        },
+        {
+            "zone": "love",
+            "score": 56,
+            "notes": "Love zone governs relationships and partnerships"
+        },
+        {
+            "zone": "career",
+            "score": 68,
+            "notes": "Career zone influences professional success"
+        },
+        {
+            "zone": "balance",
+            "score": 48,
+            "notes": "Balance zone promotes harmony and stability"
+        }
+    ],
+    "suggestions": [
+        {
+            "id": "bed_door_alignment_bed_1",
+            "title": "Realign Your Bed for Restorative Sleep and Health",
+            "description": "Your bed is currently in what Feng Shui calls the 'coffin position,' directly aligned with the door entrance. This creates a highly vulnerable and unsettling feeling, as energy rushes directly at you, disrupting your sense of security and significantly impacting your rest quality – a crucial component of your health focus. For optimal health and deep, restorative sleep, it's essential to reposition your bed into the 'command position.' This means placing your bed against a solid wall, allowing you a clear view of the entrance without being directly in its path (ideally at a 45-degree angle or perpendicular). This strategic placement empowers you, creating a sense of security and control. If space is limited, consider using a substantial screen or a decorative privacy panel between the bed and the door to block the direct alignment and create a more secure, nurturing energetic buffer. A solid headboard, crafted from natural wood or a beautifully upholstered material that complements any decor, further enhances this feeling of support and protection, profoundly reinforcing your health intention.",
+            "severity": "high",
+            "related_object_ids": [
+                "bed_1"
+            ]
+        },
+        {
+            "id": "clutter_density",
+            "title": "Declutter to Liberate Your Energy and Optimize Health",
+            "description": "With a high furniture density (53% coverage) and underlying clutter, your bedroom's energy (Chi) is likely stagnant and heavy. Clutter isn't just visual noise; it represents unresolved issues, mental 'noise,' and blocks the free flow of vital energy, contributing to mental stress, emotional fog, and even physical lethargy—all detrimental to your health focus. To transform your space into a true sanctuary of wellness, commit to a systematic decluttering journey. Start small: dedicate just 15 minutes a day, or focus on one drawer or the area under your bed this week. Remove any items that are broken, unused, hold negative memories, or don't contribute to your sense of peace and health. Embrace smart, closed storage solutions – think elegant wicker baskets, integrated drawers, or minimalist, multi-functional furniture – to keep surfaces clear and visually calm. Creating open space allows fresh, vibrant energy to circulate, promoting clarity, peace, and a profound sense of lightness essential for robust health.",
+            "severity": "medium",
+            "related_object_ids": []
+        },
+        {
+            "id": "no_windows",
+            "title": "Invite Vitality: Brighten Your Windowless Sanctuary for Health",
+            "description": "The absence of natural light in your bedroom can significantly impact your health, as natural light is vital for regulating your circadian rhythms, boosting mood, and inviting vibrant, positive Chi. Without it, energy can feel heavy, dim, and stagnant, affecting your vitality and sleep. While a physical window isn't possible, we can artfully simulate its benefits and enhance the room's energy. Strategically place large mirrors to reflect light from adjoining rooms or hallways, effectively 'borrowing' their natural illumination and expanding the perceived space. Beyond this, invest in full-spectrum 'daylight' LED bulbs to mimic natural light and reduce eye strain, placing lamps at various heights for layered, ambient lighting. Incorporate live, low-light tolerant plants (like Snake Plants or ZZ Plants) to bring vital oxygen and natural energy into the space, contributing to better air quality. Choose light, uplifting paint colors (soft whites, pale blues, or gentle greens) to brighten the room visually. Finally, consider a high-quality air purifier to ensure the air quality is pristine, compensating for the lack of natural ventilation. These actions will lift the energetic vibration of your room, fostering a brighter, healthier environment crucial for your overall well-being and health focus.",
+            "severity": "medium",
+            "related_object_ids": []
+        }
+    ],
+    "ui_hints": {
+        "highlight_objects": [
+            "door_1",
+            "bed_1"
+        ],
+        "recommended_zones": [
+            "health",
+            "fame",
+            "creativity"
+        ]
+    }
+}

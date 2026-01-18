@@ -1,0 +1,8 @@
+# OS junk
+.DS_Store
+
+# Environment variables
+.env
+.env.*
+FengShui/.env
+FengShui/.env.*
