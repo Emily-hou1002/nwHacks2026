@@ -1,0 +1,395 @@
+{
+  "sample_requests": {
+    "bedroom_example": {
+      "room_metadata": {
+        "room_type": "bedroom",
+        "north_direction_deg": 0,
+        "room_style": "modern",
+        "feng_shui_intention": "health",
+        "birth_year": 1995
+      },
+      "room_dimensions": {
+        "length_m": 4.5,
+        "width_m": 3.5,
+        "height_m": 2.7
+      },
+      "objects": [
+        {
+          "id": "bed_1",
+          "type": "bed",
+          "position": {
+            "x": 2.25,
+            "y": 1.0
+          },
+          "rotation_deg": 90,
+          "dimensions": {
+            "length_m": 2.0,
+            "width_m": 1.5,
+            "height_m": 0.5
+          }
+        },
+        {
+          "id": "door_1",
+          "type": "door",
+          "position": {
+            "x": 0.0,
+            "y": 1.75
+          },
+          "rotation_deg": 90,
+          "dimensions": {
+            "length_m": 0.9,
+            "width_m": 0.1,
+            "height_m": 2.0
+          }
+        },
+        {
+          "id": "window_1",
+          "type": "window",
+          "position": {
+            "x": 2.25,
+            "y": 0.0
+          },
+          "rotation_deg": 0,
+          "dimensions": {
+            "length_m": 1.5,
+            "width_m": 0.1,
+            "height_m": 1.2
+          }
+        },
+        {
+          "id": "dresser_1",
+          "type": "dresser",
+          "position": {
+            "x": 0.5,
+            "y": 0.5
+          },
+          "rotation_deg": 0,
+          "dimensions": {
+            "length_m": 1.2,
+            "width_m": 0.5,
+            "height_m": 1.0
+          }
+        }
+      ]
+    },
+    "office_example": {
+      "room_metadata": {
+        "room_type": "office",
+        "north_direction_deg": 0,
+        "room_style": "minimalist",
+        "feng_shui_intention": "career",
+        "birth_year": 1990
+      },
+      "room_dimensions": {
+        "length_m": 3.5,
+        "width_m": 3.0,
+        "height_m": 2.7
+      },
+      "objects": [
+        {
+          "id": "desk_1",
+          "type": "desk",
+          "position": {
+            "x": 1.75,
+            "y": 1.5
+          },
+          "rotation_deg": 180,
+          "dimensions": {
+            "length_m": 1.5,
+            "width_m": 0.7,
+            "height_m": 0.75
+          }
+        },
+        {
+          "id": "chair_1",
+          "type": "chair",
+          "position": {
+            "x": 1.75,
+            "y": 2.2
+          },
+          "rotation_deg": 0,
+          "dimensions": {
+            "length_m": 0.5,
+            "width_m": 0.5,
+            "height_m": 1.0
+          }
+        },
+        {
+          "id": "door_1",
+          "type": "door",
+          "position": {
+            "x": 0.0,
+            "y": 1.5
+          },
+          "rotation_deg": 90,
+          "dimensions": {
+            "length_m": 0.9,
+            "width_m": 0.1,
+            "height_m": 2.0
+          }
+        },
+        {
+          "id": "window_1",
+          "type": "window",
+          "position": {
+            "x": 1.75,
+            "y": 0.0
+          },
+          "rotation_deg": 0,
+          "dimensions": {
+            "length_m": 1.2,
+            "width_m": 0.1,
+            "height_m": 1.2
+          }
+        }
+      ]
+    },
+    "living_room_example": {
+      "room_metadata": {
+        "room_type": "living_room",
+        "north_direction_deg": 45,
+        "room_style": "scandinavian",
+        "feng_shui_intention": "relationships",
+        "birth_year": 1988
+      },
+      "room_dimensions": {
+        "length_m": 5.0,
+        "width_m": 4.0,
+        "height_m": 2.7
+      },
+      "objects": [
+        {
+          "id": "sofa_1",
+          "type": "sofa",
+          "position": {
+            "x": 2.5,
+            "y": 1.0
+          },
+          "rotation_deg": 0,
+          "dimensions": {
+            "length_m": 2.5,
+            "width_m": 0.9,
+            "height_m": 0.9
+          }
+        },
+        {
+          "id": "coffee_table_1",
+          "type": "table",
+          "position": {
+            "x": 2.5,
+            "y": 2.0
+          },
+          "rotation_deg": 0,
+          "dimensions": {
+            "length_m": 1.2,
+            "width_m": 0.6,
+            "height_m": 0.4
+          }
+        },
+        {
+          "id": "door_1",
+          "type": "door",
+          "position": {
+            "x": 0.0,
+            "y": 2.0
+          },
+          "rotation_deg": 90,
+          "dimensions": {
+            "length_m": 0.9,
+            "width_m": 0.1,
+            "height_m": 2.0
+          }
+        },
+        {
+          "id": "window_1",
+          "type": "window",
+          "position": {
+            "x": 2.5,
+            "y": 0.0
+          },
+          "rotation_deg": 0,
+          "dimensions": {
+            "length_m": 2.0,
+            "width_m": 0.1,
+            "height_m": 1.5
+          }
+        },
+        {
+          "id": "plant_1",
+          "type": "plant",
+          "position": {
+            "x": 4.0,
+            "y": 3.5
+          },
+          "rotation_deg": 0,
+          "dimensions": {
+            "length_m": 0.3,
+            "width_m": 0.3,
+            "height_m": 1.2
+          }
+        }
+      ]
+    },
+    "minimal_example": {
+      "room_metadata": {
+        "room_type": "bedroom",
+        "feng_shui_intention": "wealth"
+      },
+      "room_dimensions": {
+        "length_m": 3.0,
+        "width_m": 3.0,
+        "height_m": 2.5
+      },
+      "objects": [
+        {
+          "id": "bed_1",
+          "type": "bed",
+          "position": {
+            "x": 1.5,
+            "y": 1.5
+          },
+          "rotation_deg": 0,
+          "dimensions": {
+            "length_m": 2.0,
+            "width_m": 1.5,
+            "height_m": 0.5
+          }
+        }
+      ]
+    }
+  },
+  "sample_responses": {
+    "bedroom_response_example": {
+      "feng_shui_score": 72,
+      "bagua_analysis": [
+        {
+          "zone": "wealth",
+          "score": 65,
+          "notes": "Bed placement could be improved for wealth energy"
+        },
+        {
+          "zone": "health",
+          "score": 78,
+          "notes": "Good natural light access promotes health"
+        },
+        {
+          "zone": "relationships",
+          "score": 70,
+          "notes": "Consider positioning for better relationship energy"
+        },
+        {
+          "zone": "career",
+          "score": 68,
+          "notes": "Room layout supports career growth"
+        }
+      ],
+      "suggestions": [
+        {
+          "id": "suggestion_1",
+          "title": "Move bed away from door",
+          "description": "Beds aligned with doors reduce rest quality and can disrupt energy flow. Position your bed so it's not directly in line with the door.",
+          "severity": "high",
+          "related_object_ids": ["bed_1"]
+        },
+        {
+          "id": "suggestion_2",
+          "title": "Improve natural light access",
+          "description": "Ensure windows are unobstructed to allow positive energy (chi) to flow into the room.",
+          "severity": "medium",
+          "related_object_ids": []
+        },
+        {
+          "id": "suggestion_3",
+          "title": "Reduce clutter",
+          "description": "Clutter blocks energy flow. Keep the space organized and free of unnecessary items.",
+          "severity": "low",
+          "related_object_ids": []
+        }
+      ],
+      "ui_hints": {
+        "highlight_objects": ["bed_1"],
+        "recommended_zones": ["health", "relationships"]
+      }
+    },
+    "office_response_example": {
+      "feng_shui_score": 68,
+      "bagua_analysis": [
+        {
+          "zone": "career",
+          "score": 75,
+          "notes": "Desk positioning supports career advancement"
+        },
+        {
+          "zone": "wealth",
+          "score": 70,
+          "notes": "Good energy flow for prosperity"
+        },
+        {
+          "zone": "knowledge",
+          "score": 65,
+          "notes": "Consider adding plants for knowledge energy"
+        }
+      ],
+      "suggestions": [
+        {
+          "id": "suggestion_1",
+          "title": "Desk should face the room, not the wall",
+          "description": "Position your desk so you can see the door and room entrance. This 'command position' enhances focus and career success.",
+          "severity": "high",
+          "related_object_ids": ["desk_1"]
+        },
+        {
+          "id": "suggestion_2",
+          "title": "Add natural elements",
+          "description": "Incorporate plants or natural materials to balance the energy and improve productivity.",
+          "severity": "medium",
+          "related_object_ids": []
+        }
+      ],
+      "ui_hints": {
+        "highlight_objects": ["desk_1"],
+        "recommended_zones": ["career", "wealth"]
+      }
+    }
+  },
+  "notes": {
+    "request_format": "All coordinates are in meters. Position (x, y) represents the center of the object. Rotation is in degrees (0-360).",
+    "response_format": "Scores are integers from 0-100. Severity must be one of: low, medium, high. Object IDs in related_object_ids should match IDs from the request.",
+    "testing": "Use these sample payloads to test the API endpoint. The stub implementation will return context-aware responses based on room_type.",
+    "new_fields": {
+      "room_style": "Optional. Preferred aesthetic theme. Valid values: modern, minimalist, traditional, bohemian, scandinavian, industrial, contemporary, rustic",
+      "feng_shui_intention": "Optional. Primary Feng Shui focus (one of 8 Bagua zones). Valid values: wealth, fame, relationships, health, creativity, knowledge, career, helpful_people",
+      "birth_year": "Optional. User's birth year (1900-2024) for personalized Feng Shui calculations based on Chinese astrology"
+    }
+  },
+  "example_with_all_new_fields": {
+    "room_metadata": {
+      "room_type": "bedroom",
+      "north_direction_deg": 0,
+      "room_style": "minimalist",
+      "feng_shui_intention": "wealth",
+      "birth_year": 1992
+    },
+    "room_dimensions": {
+      "length_m": 4.0,
+      "width_m": 3.5,
+      "height_m": 2.7
+    },
+    "objects": [
+      {
+        "id": "bed_1",
+        "type": "bed",
+        "position": {
+          "x": 2.0,
+          "y": 1.5
+        },
+        "rotation_deg": 0,
+        "dimensions": {
+          "length_m": 2.0,
+          "width_m": 1.5,
+          "height_m": 0.5
+        }
+      }
+    ]
+  }
+}
