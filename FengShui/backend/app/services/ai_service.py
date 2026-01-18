@@ -202,7 +202,10 @@ class AISuggestionEnhancer:
             for s in suggestions
         ])
         
-        prompt = f"""You are an expert Feng Shui consultant. Enhance these Feng Shui suggestions with personalized, actionable advice.
+        prompt = f"""You are an expert Feng Shui consultant.
+
+Your job is to ENHANCE each existing suggestion by adding EXACTLY THREE concise bullet points
+describing how to improve it. These bullets must be practical, step-by-step actions.
 
 ROOM CONTEXT:
 - Room Type: {room_type}
@@ -217,27 +220,33 @@ CURRENT SUGGESTIONS:
 {suggestions_text}
 
 TASK:
-Enhance each suggestion's description with personalized, actionable advice based on:
+For EACH suggestion, keep the same ID and severity, and produce:
+- a slightly refined title (optional)
+- a short 1–2 sentence description (optional)
+- EXACTLY 3 improvement bullet points (required)
 1. Room style ({room_style}) - incorporate style-specific recommendations
 2. Feng Shui intention ({intention}) - relate to their goal
 3. Birth year ({birth_year}) - if provided, add relevant Chinese astrology insights
-4. Make descriptions more engaging and actionable
+4. Make it actionable: bullets should be short, specific actions (not vague)
 5. Keep the same suggestion IDs, titles, and severity levels
 
 IMPORTANT:
 - Return ONLY valid JSON array format
 - Keep all suggestion IDs exactly the same
-- Keep all titles (you can refine them slightly)
+- Titles may be refined slightly but must stay concise
 - Keep all severity levels (low, medium, high)
-- Enhance descriptions with personalized, actionable advice
+- Descriptions should be 1-2 sentences MAX (no walls of text)
+- Add an "improvement_points" field with EXACTLY 3 concise strings (each <= 12 words)
 - Keep related_object_ids the same
+- No markdown, no extra keys beyond the schema below
 
 FORMAT: JSON array of suggestions
 [
   {{
     "id": "suggestion_id",
-    "title": "Enhanced title (optional refinement)",
-    "description": "Enhanced description with personalization",
+    "title": "Short title",
+    "description": "1-2 sentence personalized summary",
+    "improvement_points": ["point 1", "point 2", "point 3"],
     "severity": "low|medium|high",
     "related_object_ids": ["object_id1", "object_id2"]
   }},
@@ -294,12 +303,51 @@ Return the enhanced suggestions as JSON:"""
                 # Use original suggestion as base (ensures all fields present)
                 if suggestion_id in original_map:
                     original = original_map[suggestion_id]
+
+                    # If the model provided bullets, fold them into description (schema-safe)
+                    description = item.get("description", original.description)
+                    bullets = (
+                        item.get("improvement_points")
+                        or item.get("bullets")
+                        or item.get("bullet_points")
+                        or item.get("how_to")
+                        or item.get("steps")
+                    )
+
+                    cleaned_bullets: List[str] = []
+                    if isinstance(bullets, list):
+                        for b in bullets:
+                            if isinstance(b, str) and b.strip():
+                                cleaned_bullets.append(b.strip())
+
+                    # Enforce exactly 3 bullet points in the output (hackathon-stable).
+                    if len(cleaned_bullets) < 3:
+                        # Generate safe fallbacks that still read like "how to" steps.
+                        # Keep them short and actionable.
+                        fallback = [
+                            f"Pick one object related to: {original.title}",
+                            "Move in small increments; keep walkway clearance",
+                            "Recheck from entry viewpoint; adjust rotation slightly",
+                        ]
+                        for f in fallback:
+                            if len(cleaned_bullets) >= 3:
+                                break
+                            cleaned_bullets.append(f)
+
+                    cleaned_bullets = cleaned_bullets[:3]
+
+                    bullet_block = "\n".join([f"- {b}" for b in cleaned_bullets])
+                    description = (description or "").strip()
+                    if description:
+                        description = f"{description}\n\n{bullet_block}"
+                    else:
+                        description = bullet_block
                     
                     # Create enhanced version with updated description
                     enhanced = Suggestion(
                         id=suggestion_id,
                         title=item.get("title", original.title),
-                        description=item.get("description", original.description),
+                        description=description if description else original.description,
                         severity=item.get("severity", original.severity),
                         related_object_ids=item.get("related_object_ids", original.related_object_ids)
                     )
