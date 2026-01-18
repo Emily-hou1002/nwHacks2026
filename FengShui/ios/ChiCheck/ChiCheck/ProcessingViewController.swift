@@ -345,119 +345,129 @@ class ProcessingViewController: UIViewController {
     
     
     // MARK: - Unified Upload (Matches your JS Example)
-    func uploadUnifiedData() {
+    // MARK: - Unified Upload (Matches JS Schema)
+    // MARK: - Unified Upload (Bulletproof)
+    // MARK: - Unified Upload (Strict Fix)
+    // MARK: - Unified Upload (Strict JS Replica)
+        func uploadUnifiedData() {
             // 1. Validate URLs
             var targetJSON = jsonURL
             var targetUSDZ = usdzURL
             
-            // Simulator Fallbacks
+            // Simulator Fallbacks (Keep for testing)
             if targetJSON == nil { targetJSON = Bundle.main.url(forResource: "Room", withExtension: "json") }
             if targetUSDZ == nil { targetUSDZ = Bundle.main.url(forResource: "Room", withExtension: "usdz") }
             
+            // NOTE: Use ngrok for real devices, localhost for simulator
             guard let finalJSON = targetJSON, let finalUSDZ = targetUSDZ,
                   let serverURL = URL(string: "https://runnier-shaniqua-yeasty.ngrok-free.dev/analyze-room-with-model")
             else {
-                print("❌ Missing Files or Invalid URL")
+                print("❌ Setup Error: Missing Files or Invalid URL")
                 return
             }
             
             DispatchQueue.main.async { self.statusLabel.text = "Uploading scan data..." }
 
-            // 2. Load and Validate Data
+            // 2. Load Data & Decode
             guard let jsonData = try? Data(contentsOf: finalJSON),
                   let requestObj = try? JSONDecoder().decode(FSRequest.self, from: jsonData) else {
-                print("❌ Failed to decode JSON file")
+                print("❌ Data Error: Failed to decode JSON file")
                 return
             }
+            
+            // Save local debug copy
+            saveDebugJSON(request: requestObj)
             
             guard let fileData = try? Data(contentsOf: finalUSDZ) else {
-                print("❌ Failed to read USDZ file data")
+                print("❌ Data Error: Could not read USDZ file")
                 return
             }
             
-            // --- DEBUG: Verify File Integrity ---
-            print("📦 USDZ Size: \(fileData.count) bytes")
-            if fileData.count > 4 {
-                // Check for Zip Magic Bytes (PK..) -> 0x50, 0x4B
-                if fileData[0] == 0x50 && fileData[1] == 0x4B {
-                    print("✅ File Header: Valid ZIP/USDZ signature found.")
-                } else {
-                    print("⚠️ WARNING: File does not look like a valid ZIP/USDZ! (First bytes: \(fileData[0]), \(fileData[1]))")
-                }
+            if fileData.isEmpty {
+                print("⛔️ STOPPING: USDZ file is 0 bytes.")
+                return
             }
-            // ------------------------------------
-            saveDebugJSON(request: requestObj)
+            
+            print("📦 USDZ File Size: \(fileData.count) bytes")
+            
             // 3. Prepare Request
             var request = URLRequest(url: serverURL)
             request.httpMethod = "POST"
+            
+            // Create a unique boundary string
             let boundary = "Boundary-\(UUID().uuidString)"
             request.setValue("multipart/form-data; boundary=\(boundary)", forHTTPHeaderField: "Content-Type")
             
-            // 4. Build Body safely
+            // 4. Build Body (Matching JS Order: File First)
             let httpBody = NSMutableData()
             let encoder = JSONEncoder()
+            let lineBreak = "\r\n"
             
-            func appendText(name: String, value: String) {
-                httpBody.append("--\(boundary)\r\n".data(using: .utf8)!)
-                httpBody.append("Content-Disposition: form-data; name=\"\(name)\"\r\n\r\n".data(using: .utf8)!)
-                httpBody.append("\(value)\r\n".data(using: .utf8)!)
-            }
-            
-            // A. Append JSON Fields
-            if let data = try? encoder.encode(requestObj.room_metadata), let str = String(data: data, encoding: .utf8) {
-                appendText(name: "room_metadata", value: str)
-            }
-            if let data = try? encoder.encode(requestObj.room_dimensions), let str = String(data: data, encoding: .utf8) {
-                appendText(name: "room_dimensions", value: str)
-            }
-            if let data = try? encoder.encode(requestObj.objects), let str = String(data: data, encoding: .utf8) {
-                appendText(name: "objects", value: str)
-            }
-            
-            // B. Append File (Binary)
-            httpBody.append("--\(boundary)\r\n".data(using: .utf8)!)
-            httpBody.append("Content-Disposition: form-data; name=\"model_file\"; filename=\"Room.usdz\"\r\n".data(using: .utf8)!)
-            httpBody.append("Content-Type: application/zip\r\n\r\n".data(using: .utf8)!) // Changed to generic zip to be safe
+            // --- STEP A: Append File (model_file) ---
+            // JS: formData.append('model_file', usdzFile);
+            httpBody.append("--\(boundary)\(lineBreak)".data(using: .utf8)!)
+            httpBody.append("Content-Disposition: form-data; name=\"model_file\"; filename=\"Room.usdz\"\(lineBreak)".data(using: .utf8)!)
+            httpBody.append("Content-Type: model/vnd.usdz+zip\(lineBreak + lineBreak)".data(using: .utf8)!)
             httpBody.append(fileData)
-            httpBody.append("\r\n".data(using: .utf8)!)
+            httpBody.append(lineBreak.data(using: .utf8)!)
             
-            // C. Close Boundary
-            httpBody.append("--\(boundary)--\r\n".data(using: .utf8)!)
+            // --- STEP B: Append JSON Fields ---
+            // Helper to "stringify" JSON and append as form field
+            func appendJSONField(name: String, data: Codable) {
+                // 1. Encode struct to Data
+                // 2. Convert Data to String (JSON.stringify)
+                guard let jsonBytes = try? encoder.encode(data),
+                      let jsonString = String(data: jsonBytes, encoding: .utf8) else { return }
+                
+                // 3. Append to Body
+                httpBody.append("--\(boundary)\(lineBreak)".data(using: .utf8)!)
+                httpBody.append("Content-Disposition: form-data; name=\"\(name)\"\(lineBreak + lineBreak)".data(using: .utf8)!)
+                httpBody.append("\(jsonString)\(lineBreak)".data(using: .utf8)!)
+            }
+            
+            // JS: formData.append('room_metadata', JSON.stringify(...));
+            appendJSONField(name: "room_metadata", data: requestObj.room_metadata)
+            appendJSONField(name: "room_dimensions", data: requestObj.room_dimensions)
+            appendJSONField(name: "objects", data: requestObj.objects)
+            
+            // --- STEP C: Close Boundary ---
+            httpBody.append("--\(boundary)--\(lineBreak)".data(using: .utf8)!)
             
             request.httpBody = httpBody as Data
             
             // 5. Send
-            print("🚀 Sending Unified Request (\(httpBody.length) bytes)...")
+            print("🚀 Sending Request (\(httpBody.length) bytes)...")
+            
             URLSession.shared.dataTask(with: request) { [weak self] data, response, error in
                 guard let self = self else { return }
                 
                 if let error = error { print("❌ Network Error: \(error)"); return }
                 
-                if let httpResponse = response as? HTTPURLResponse {
-                    print("📡 Status Code: \(httpResponse.statusCode)")
-                    if httpResponse.statusCode != 200 {
-                        // Print server error message if available
-                        if let data = data, let errStr = String(data: data, encoding: .utf8) {
-                            print("❌ Server Error Message: \(errStr)")
+                guard let httpResponse = response as? HTTPURLResponse, let data = data else { return }
+                print("📡 Status Code: \(httpResponse.statusCode)")
+                
+                if httpResponse.statusCode == 200 {
+                    // SUCCESS
+                    do {
+                        let result = try JSONDecoder().decode(ScanResult.self, from: data)
+                        
+                        // Retrieve X-File-Id header (from your JS example)
+                        if let fileId = httpResponse.value(forHTTPHeaderField: "X-File-Id") {
+                            print("✅ File ID: \(fileId)")
                         }
+                        
+                        DispatchQueue.main.async { self.handleResultWithMinimumDelay(result) }
+                    } catch {
+                        print("❌ Decode Error: \(error)")
                     }
-                }
-                
-                guard let data = data else { return }
-                
-                // Decode Result
-                do {
-                    let result = try JSONDecoder().decode(ScanResult.self, from: data)
-                    DispatchQueue.main.async {
-                        self.handleResultWithMinimumDelay(result)
-                    }
-                } catch {
-                    print("❌ Decode Error: \(error)")
-                    print("📄 Raw Response: \(String(data: data, encoding: .utf8) ?? "nil")")
+                } else {
+                    // FAILURE
+                    let errorMsg = String(data: data, encoding: .utf8) ?? "Unknown Error"
+                    print("❌ Server Error: \(errorMsg)")
+                    DispatchQueue.main.async { self.statusLabel.text = "Error: \(httpResponse.statusCode)" }
                 }
             }.resume()
         }
-    
     
     func saveDebugJSON(request: FSRequest) {
             let docDir = FileManager.default.urls(for: .documentDirectory, in: .userDomainMask).first!
