@@ -112,45 +112,42 @@ class ThreeDResultsViewController: UIViewController {
         // Tell SceneView to orbit around this center node
         sceneView.pointOfView = cameraNode
     }
-    private func isBelowFloor(node: SCNNode) -> Bool {
-        // Get the min/max in the node's parent coordinate space
-        let min = node.boundingBox.min
-        let worldMin = node.convertPosition(min, to: nil)
-        
-        // We check if the top of the object is still below a threshold (e.g., -0.05m)
-        // to allow for small floor thickness or floating point errors.
-        return worldMin.y < -0.05
-    }
+    
     // MARK: - Geometry Processing
     
     private func replaceWithWireframeBoxes(node: SCNNode) {
         for child in node.childNodes {
             
-            // 1. Skip already processed nodes
             if child.name == "WireframeBox" { continue }
             
-            // 2. Hide explicit floor nodes
             if let name = child.name?.lowercased(), name.contains("floor") {
                 child.isHidden = true
                 continue
             }
-
-            // 3. CULL NODES BELOW FLOOR
-            // If the object's position is below ground, hide it and skip processing
-            if isBelowFloor(node: child) {
-                child.isHidden = true
-                child.geometry = nil
-                continue
-            }
             
-            if let _ = child.geometry {
+            if let geo = child.geometry {
                 let (minVec, maxVec) = child.boundingBox
                 let width = CGFloat(maxVec.x - minVec.x)
                 let height = CGFloat(maxVec.y - minVec.y)
                 let length = CGFloat(maxVec.z - minVec.z)
                 
-                // ... (Your existing Opening Detection Logic) ...
-
+                // Detect Openings for Particles
+                if let name = child.name?.lowercased() {
+                    let isDoor = name.contains("door") || name.contains("opening")
+                    let isWindow = name.contains("window")
+                    
+                    if isDoor || isWindow {
+                        openingEmitters.append(
+                            ResultOpeningEmitter(
+                                node: child,
+                                width: width,
+                                height: height,
+                                type: isDoor ? .door : .window
+                            )
+                        )
+                    }
+                }
+                
                 // Create Thick Wireframe
                 let wireframeNode = createThickWireframe(
                     width: width,
@@ -166,7 +163,7 @@ class ThreeDResultsViewController: UIViewController {
                 )
                 
                 child.addChildNode(wireframeNode)
-                child.geometry = nil
+                child.geometry = nil // Hide original solid mesh
             }
             
             replaceWithWireframeBoxes(node: child)
