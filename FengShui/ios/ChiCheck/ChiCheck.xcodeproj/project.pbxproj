@@ -10,22 +10,9 @@
 		B9C2D14D2F1C35E200D7E673 /* ChiCheck.app */ = {isa = PBXFileReference; explicitFileType = wrapper.application; includeInIndex = 0; path = ChiCheck.app; sourceTree = BUILT_PRODUCTS_DIR; };
 /* End PBXFileReference section */
 
-/* Begin PBXFileSystemSynchronizedBuildFileExceptionSet section */
-		B930347A2F1C521600FCB9E3 /* Exceptions for "ChiCheck" folder in "ChiCheck" target */ = {
-			isa = PBXFileSystemSynchronizedBuildFileExceptionSet;
-			membershipExceptions = (
-				Info.plist,
-			);
-			target = B9C2D14C2F1C35E200D7E673 /* ChiCheck */;
-		};
-/* End PBXFileSystemSynchronizedBuildFileExceptionSet section */
-
 /* Begin PBXFileSystemSynchronizedRootGroup section */
 		B9C2D14F2F1C35E200D7E673 /* ChiCheck */ = {
 			isa = PBXFileSystemSynchronizedRootGroup;
-			exceptions = (
-				B930347A2F1C521600FCB9E3 /* Exceptions for "ChiCheck" folder in "ChiCheck" target */,
-			);
 			path = ChiCheck;
 			sourceTree = "<group>";
 		};
