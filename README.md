@@ -1,1 +1,1 @@
-# nwHacks2026
+# nwHacks 2026
